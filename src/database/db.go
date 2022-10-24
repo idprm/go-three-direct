@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"waki.mobi/go-yatta-h3i/src/config"
-	"waki.mobi/go-yatta-h3i/src/models"
+	"waki.mobi/go-yatta-h3i/src/pkg/models"
 )
 
 type DbInstance struct {
@@ -48,12 +48,86 @@ func Connect() {
 		&models.Service{},
 		&models.Transaction{},
 		&models.Subscription{},
-		&models.Retry{},
 	)
 
 	// TODO: Seed records
+	var config []models.Config
+	var adnet []models.Adnet
+	var content []models.Content
+	var service []models.Service
+
+	resultConfig := db.Find(&config)
+	resultAdnet := db.Find(&adnet)
+	resultContent := db.Find(&content)
+	resultService := db.Find(&service)
+
+	if resultConfig.RowsAffected == 0 {
+		for i, _ := range configs {
+			db.Model(&models.Config{}).Create(&configs[i])
+		}
+	}
+
+	if resultAdnet.RowsAffected == 0 {
+		for i, _ := range adnets {
+			db.Model(&models.Adnet{}).Create(&adnets[i])
+		}
+	}
+
+	if resultContent.RowsAffected == 0 {
+		for i, _ := range contents {
+			db.Model(&models.Content{}).Create(&contents[i])
+		}
+	}
+
+	if resultService.RowsAffected == 0 {
+		for i, _ := range services {
+			db.Model(&models.Service{}).Create(&services[i])
+		}
+	}
 
 	Database = DbInstance{
 		Db: db,
 	}
+}
+
+var configs = []models.Config{
+	{
+		Name:  "AUTO_MESSAGE_SENDBIRD",
+		Value: "Hi, I'm @v1, please describe the symptoms you are feeling",
+	},
+	{
+		Name:  "AUTO_MESSAGE_SENDBIRD",
+		Value: "Hi, Saya @v1 silahkan jelaskan keluhan kamu",
+	},
+}
+
+var adnets = []models.Adnet{
+	{
+		Name:  "AUTO_MESSAGE_SENDBIRD",
+		Value: "Hi, I'm @v1, please describe the symptoms you are feeling",
+	},
+	{
+		Name:  "AUTO_MESSAGE_SENDBIRD",
+		Value: "Hi, Saya @v1 silahkan jelaskan keluhan kamu",
+	},
+}
+
+var contents = []models.Content{
+	{
+		Name:  "AUTO_MESSAGE_SENDBIRD",
+		Value: "Hi, I'm @v1, please describe the symptoms you are feeling",
+	},
+	{
+		Name:  "AUTO_MESSAGE_SENDBIRD",
+		Value: "Hi, Saya @v1 silahkan jelaskan keluhan kamu",
+	},
+}
+
+var services = []models.Service{
+	{
+		Name: "AUTO_MESSAGE_SENDBIRD",
+	},
+	{
+		Name: "AUTO_MESSAGE_SENDBIRD",
+	},
 }
