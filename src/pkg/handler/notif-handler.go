@@ -31,7 +31,6 @@ func NotifSub(service model.Service, msisdn string, transaction string) ([]byte,
 
 	payload := url.Values{}
 	payload.Add("msisdn", msisdn)
-	payload.Add("package", service.Category)
 	payload.Add("trxid", transaction)
 
 	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)
@@ -42,7 +41,6 @@ func NotifSub(service model.Service, msisdn string, transaction string) ([]byte,
 	loggerNotif.WithFields(logrus.Fields{
 		"request_url": urlAPI + "?" + payload.Encode(),
 		"msisdn":      msisdn,
-		"package":     service.Category,
 	}).Info(detailNotifSub)
 
 	tr := &http.Transport{
@@ -92,7 +90,6 @@ func NotifUnsub(service model.Service, msisdn string) ([]byte, error) {
 	loggerNotif.WithFields(logrus.Fields{
 		"request_url": urlAPI + "?" + payload.Encode(),
 		"msisdn":      msisdn,
-		"package":     service.Category,
 	}).Info(detailNotifUnsub)
 
 	tr := &http.Transport{
@@ -134,7 +131,6 @@ func NotifRenewal(service model.Service, msisdn string, transaction string) ([]b
 	payload := url.Values{}
 	payload.Add("msisdn", msisdn)
 	payload.Add("trxid", transaction)
-	payload.Add("package", service.Category)
 
 	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)
 	if err != nil {
@@ -144,7 +140,6 @@ func NotifRenewal(service model.Service, msisdn string, transaction string) ([]b
 	loggerNotif.WithFields(logrus.Fields{
 		"request_url": urlAPI + "?" + payload.Encode(),
 		"msisdn":      msisdn,
-		"package":     service.Category,
 	}).Info(detailNotifRenewal)
 
 	tr := &http.Transport{

@@ -6,37 +6,42 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"waki.mobi/go-yatta-h3i/src/pkg/config"
+	"waki.mobi/go-yatta-h3i/src/pkg/dto"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 )
-
-type DRRequest struct {
-	Msisdn    string `form:"msisdn" json:"msisdn"`
-	ShortCode string `form:"shortcode" json:"shortcode"`
-	Status    string `form:"status" json:"status"`
-	Message   string `form:"message" json:"message"`
-	IpAddress string `form:"ip" json:"ip"`
-}
 
 func DeliveryReport(c *gin.Context) {
 	/**
 	 * {"msisdn":"62895330590144","shortcode":"998791","status":"DELIVRD","message":"1601666588632810494","ip":"116.206.10.222"}
 	 */
+	var req dto.DRRequest
 
-	var req DRRequest
-	if c.ShouldBindQuery(&req) == nil {
-		json, _ := json.Marshal(req)
-
-		go func() {
-			queue.Rabbit.IntegratePublish(
-				config.ViperEnv("RMQ_DREXCHANGE"),
-				config.ViperEnv("RMQ_DRQUEUE"),
-				config.ViperEnv("RMQ_DRDATATYPE"),
-				"",
-				string(json),
-			)
-		}()
-
+	/**
+	 * Body Parsing
+	 */
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.XML(http.StatusBadRequest, gin.H{
+			"error":   true,
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+		})
+		return
 	}
 
-	c.XML(http.StatusOK, gin.H{"status": "OK"})
+	json, _ := json.Marshal(req)
+
+	queue.Rabbit.IntegratePublish(
+		config.ViperEnv("RMQ_DREXCHANGE"),
+		config.ViperEnv("RMQ_DRQUEUE"),
+		config.ViperEnv("RMQ_DRDATATYPE"),
+		"",
+		string(json),
+	)
+
+	c.XML(http.StatusOK, gin.H{
+		"error":   false,
+		"code":    http.StatusOK,
+		"message": "Success",
+	})
+	return
 }

@@ -13,7 +13,6 @@ type Subscription struct {
 	Msisdn        string    `gorm:"size:25" json:"msisdn"`
 	Message       string    `gorm:"150" json:"message"`
 	Keyword       string    `gorm:"100" json:"keyword"`
-	Channel       string    `gorm:"size:20;default:null" json:"channel"`
 	Adnet         string    `gorm:"size:55;default:null" json:"adnet"`
 	LatestSubject string    `gorm:"size:45;default:null" json:"latest_subject"`
 	LatestStatus  string    `gorm:"size:45;default:null" json:"latest_status"`

@@ -31,7 +31,7 @@ func GetDataPopulate(name string) ([]model.Subscription, error) {
 	for rows.Next() {
 
 		var s model.Subscription
-		if err := rows.Scan(&s.ID, &s.Msisdn, &s.ServiceID, &s.Channel, &s.IpAddress); err != nil {
+		if err := rows.Scan(&s.ID, &s.Msisdn, &s.ServiceID, &s.IpAddress); err != nil {
 			return nil, err
 		}
 		subs = append(subs, s)

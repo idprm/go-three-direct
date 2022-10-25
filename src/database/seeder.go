@@ -71,57 +71,62 @@ var schedules = []model.Schedule{
 var contents = []model.Content{
 	{
 		Name:       "WELCOME",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "REG KEREN kamu sdh aktif. Kamu akan dikirimkan SMS utk akses layanan tarif 2200/SMS/2 hari, aktif s/d 180 hari. Stop: UNREG KEREN ke 99879 CS:02152964211",
 	},
 	{
 		Name:       "REGISTRATION",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "Kamu akan berlangganan layanan REG KEREN tarif 2200/sms/2 hari, layanan aktif s/d 180hr. Balas YA utk lanjut.",
 	},
 	{
 		Name:       "CONFIRMATION",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "Terimakasih, permintaan kamu diproses",
 	},
 	{
 		Name:       "FIRSTPUSH",
-		OriginAddr: "",
+		OriginAddr: "998791",
 		Value:      "Kamu terdaftar di REG KEREN tarif 2200/sms/2 hari. Klik aplikasi REG KEREN https://bit.ly/3BGcVgj. (Tarif data berlaku). Stop: UNREG KEREN ke 99879 CS:02152964211",
 	},
 	{
 		Name:       "RENEWAL",
-		OriginAddr: "",
+		OriginAddr: "998791",
+		Value:      "Layanan KEREN km aktif 180hr s/d @renewal_date di https://bit.ly/3BGcVgj. Tarif Rp2200/sms/2 hari selama 180hr. Stop: UNREG KEREN,CS:021-52964211",
+	},
+	{
+		Name:       "UNSUB",
+		OriginAddr: "998790",
 		Value:      "Kamu sudah tidak berlangganan di layanan REG KEREN",
 	},
 	{
 		Name:       "INSUFT",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "Maaf pulsa kamu tdk cukup, mohon isi ulang untuk bisa menikmati serunya layanan kami. Stop: UNREG KEREN ke 99879 CS:02152964211",
 	},
 	{
 		Name:       "ERROR_KEYWORD",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "Keyword yang kamu masukkan salah. Ketik REG KEREN ke 99879. CS: 02152964211",
 	},
 	{
 		Name:       "FAILED",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "Maaf, Anda belum berhasil berlangganan",
 	},
 	{
 		Name:       "REMINDER",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "Layanan REG KEREN akan berakhir. Untuk perpanjang balas YA ke 99879 tarif 2200/SMS/2 hari, layanan aktif s/d 180 hari",
 	},
 	{
 		Name:       "IS_ACTIVE",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "Kamu masih terdaftar di layanan REG KEREN tarif 2200/SMS/2 hari. Untuk berhenti berlangganan ketik UNREG KEREN kirim ke 99879",
 	},
 	{
 		Name:       "PURGE",
-		OriginAddr: "",
+		OriginAddr: "998790",
 		Value:      "Kamu sudah tidak berlangganan di layanan REG KEREN",
 	},
 }
@@ -129,10 +134,10 @@ var contents = []model.Content{
 var services = []model.Service{
 	{
 		ID:              1,
-		ServiceCode:     "KEREN",
+		Code:            "99879",
+		Name:            "KEREN",
 		AuthUser:        "SD_210906_0180",
 		AuthPass:        "y4tt43r4",
-		Name:            "KEREN",
 		Day:             2,
 		Charge:          2200,
 		TrialDay:        0,

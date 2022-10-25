@@ -36,7 +36,6 @@ func MessageTerminated(service model.Service, content model.Content, msisdn stri
 	loggerMT.WithFields(logrus.Fields{
 		"request_url":    urlAPI + "?" + payload.Encode(),
 		"msisdn":         msisdn,
-		"package":        service.Category,
 		"transaction_id": transaction,
 	}).Info(detailNotifRenewal)
 

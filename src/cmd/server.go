@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -16,44 +17,51 @@ var serverCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		/**
-		 * SETUP RMQ
-		 */
-		queue.SetupQueue()
-
-		// /**
-		//  * SETUP CHANNEL
-		//  */
-		// queue.Rabbit.SetUpChannel(
-		// 	config.ViperEnv("RMQ_EXCHANGETYPE"),
-		// 	true,
-		// 	config.ViperEnv("RMQ_MOEXCHANGE"),
-		// 	true,
-		// 	config.ViperEnv("RMQ_MOQUEUE"),
-		// )
-
-		// queue.Rabbit.SetUpChannel(
-		// 	config.ViperEnv("RMQ_EXCHANGETYPE"),
-		// 	true,
-		// 	config.ViperEnv("RMQ_DREXCHANGE"),
-		// 	true,
-		// 	config.ViperEnv("RMQ_DRQUEUE"),
-		// )
-
 		// Setup routing rules
-		route := route.SetupRouter()
+		router := route.SetupRouter()
 
 		// Setup Trusted IP
 		// route.SetTrustedProxies([]string{"192.168.1.2"})
 
 		// Logger
-		route.Use(gin.Logger())
+		router.Use(gin.Logger())
 
 		/**
 		 * Access log on browser
 		 */
-		route.StaticFS("/logs", http.Dir("logs"))
+		router.StaticFS("/logs", http.Dir("logs"))
 
-		route.Run(":" + config.ViperEnv("APP_PORT"))
+		server := &http.Server{
+			Addr:           ":" + config.ViperEnv("APP_PORT"),
+			Handler:        router,
+			ReadTimeout:    10 * time.Second,
+			WriteTimeout:   10 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+		}
+
+		/**
+		 * SETUP RMQ
+		 */
+		queue.SetupQueue()
+
+		/**
+		 * SETUP CHANNEL
+		 */
+		queue.Rabbit.SetUpChannel(
+			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			true,
+			config.ViperEnv("RMQ_MOEXCHANGE"),
+			true,
+			config.ViperEnv("RMQ_MOQUEUE"),
+		)
+
+		queue.Rabbit.SetUpChannel(
+			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			true,
+			config.ViperEnv("RMQ_DREXCHANGE"),
+			true,
+			config.ViperEnv("RMQ_DRQUEUE"),
+		)
+		server.ListenAndServe()
 	},
 }
