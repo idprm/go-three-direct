@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,33 +11,38 @@ import (
 )
 
 type MORequest struct {
-	MobileNo  string `query:"mobile_no" json:"mobile_no"`
-	ShortCode string `query:"short_code" json:"short_code"`
-	Message   string `query:"message" json:"message"`
-	IpAddress string `query:"ip" json:"ip"`
+	MobileNo  string `form:"mobile_no" json:"mobile_no"`
+	ShortCode string `form:"short_code" json:"short_code"`
+	Message   string `form:"message" json:"message"`
+	IpAddress string `form:"ip" json:"ip"`
 }
 
 func MessageOriginated(c *gin.Context) {
-
 	/**
 	 * {"mobile_no":"62895330590144","short_code":"99879","message":"REG KEREN","ip":"116.206.10.222"}
 	 */
 
-	/**
-	 * SETUP RMQ
-	 */
-	queue.SetupQueue()
+	var req MORequest
 
-	/**
-	 * SETUP CHANNEL
-	 */
-	queue.Rabbit.SetUpChannel(
-		config.ViperEnv("RMQ_EXCHANGETYPE"),
-		true,
+	req.MobileNo = c.Query("mobile_no")
+	req.ShortCode = c.Query("short_code")
+	req.Message = c.Query("message")
+	req.IpAddress = c.Query("ip")
+
+	json, _ := json.Marshal(req)
+	isPublished := queue.Rabbit.IntegratePublish(
 		config.ViperEnv("RMQ_MOEXCHANGE"),
-		true,
 		config.ViperEnv("RMQ_MOQUEUE"),
+		config.ViperEnv("RMQ_MODATATYPE"),
+		"",
+		string(json),
 	)
+
+	if isPublished {
+		fmt.Println("[v] Published")
+	} else {
+		fmt.Println("[v] Failed Published")
+	}
 
 	// push to rabbitmq
 	c.XML(http.StatusOK, gin.H{"status": "OK"})

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/pkg/config"
+	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 	"waki.mobi/go-yatta-h3i/src/pkg/route"
 )
 
@@ -14,11 +15,36 @@ var serverCmd = &cobra.Command{
 	Short: "Server CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * SETUP RMQ
+		 */
+		queue.SetupQueue()
+
+		// /**
+		//  * SETUP CHANNEL
+		//  */
+		// queue.Rabbit.SetUpChannel(
+		// 	config.ViperEnv("RMQ_EXCHANGETYPE"),
+		// 	true,
+		// 	config.ViperEnv("RMQ_MOEXCHANGE"),
+		// 	true,
+		// 	config.ViperEnv("RMQ_MOQUEUE"),
+		// )
+
+		// queue.Rabbit.SetUpChannel(
+		// 	config.ViperEnv("RMQ_EXCHANGETYPE"),
+		// 	true,
+		// 	config.ViperEnv("RMQ_DREXCHANGE"),
+		// 	true,
+		// 	config.ViperEnv("RMQ_DRQUEUE"),
+		// )
+
 		// Setup routing rules
 		route := route.SetupRouter()
 
 		// Setup Trusted IP
-		route.SetTrustedProxies([]string{"192.168.1.2"})
+		// route.SetTrustedProxies([]string{"192.168.1.2"})
 
 		// Logger
 		route.Use(gin.Logger())

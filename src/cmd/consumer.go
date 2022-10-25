@@ -51,7 +51,7 @@ var consumerMOCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				// moProccesor(&wg, d.Body)
+				moProccesor(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -109,7 +109,7 @@ var consumerDRCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				// drProccesor(&wg, d.Body)
+				drProccesor(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
