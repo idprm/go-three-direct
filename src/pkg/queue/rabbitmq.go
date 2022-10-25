@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/wiliehidayat87/rmqp"
-	"waki.mobi/go-yatta-h3i/src/config"
+	"waki.mobi/go-yatta-h3i/src/pkg/config"
 )
 
 var Rabbit rmqp.AMQP

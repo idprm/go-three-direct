@@ -1,4 +1,4 @@
-package models
+package model
 
 type Adnet struct {
 	ID    int    `gorm:"primaryKey" json:"id"`

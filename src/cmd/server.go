@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
-	"waki.mobi/go-yatta-h3i/src/config"
-	"waki.mobi/go-yatta-h3i/src/route"
+	"waki.mobi/go-yatta-h3i/src/pkg/config"
+	"waki.mobi/go-yatta-h3i/src/pkg/route"
 )
 
 var serverCmd = &cobra.Command{

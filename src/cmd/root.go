@@ -18,9 +18,21 @@ func Execute() error {
 }
 
 func init() {
-	// cobra.OnInitialize(in)
-}
 
-func initConfig() {
-	//
+	/*
+	 * WEBSERVER SERVICE
+	 */
+	rootCmd.AddCommand(serverCmd)
+
+	/**
+	 * RABBITMQ SERVICE
+	 */
+	rootCmd.AddCommand(consumerMOCmd)
+	rootCmd.AddCommand(consumerDRCmd)
+	rootCmd.AddCommand(consumerRenewalCmd)
+	rootCmd.AddCommand(consumerRetryCmd)
+
+	rootCmd.AddCommand(publisherRenewalCmd)
+	rootCmd.AddCommand(publisherRetryCmd)
+
 }

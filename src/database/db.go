@@ -1,23 +1,37 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"waki.mobi/go-yatta-h3i/src/config"
-	"waki.mobi/go-yatta-h3i/src/pkg/models"
+	"waki.mobi/go-yatta-h3i/src/pkg/config"
+	"waki.mobi/go-yatta-h3i/src/pkg/model"
 )
 
-type DbInstance struct {
-	Db *gorm.DB
+var Datasource *NewDatasource
+
+type NewDatasource struct {
+	db    *gorm.DB
+	sqlDb *sql.DB
 }
 
-var Database DbInstance
+func (d NewDatasource) DB() *gorm.DB {
+	return d.db
+}
+
+func (d NewDatasource) SqlDB() *sql.DB {
+	return d.sqlDb
+}
 
 func Connect() {
+
+	var db *gorm.DB
+	var sqlDb *sql.DB
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		config.ViperEnv("DB_USER"),
@@ -34,6 +48,19 @@ func Connect() {
 		panic("Could not connect with the database!")
 	}
 
+	sqlDb, _ = db.DB()
+	sqlDb.SetConnMaxLifetime(time.Minute * 2)
+	sqlDb.SetMaxOpenConns(10000)
+	sqlDb.SetMaxIdleConns(10000)
+
+	// try to establish connection
+	if sqlDb != nil {
+		err = sqlDb.Ping()
+		if err != nil {
+			log.Fatal("cannot connect to db:", err.Error())
+		}
+	}
+
 	log.Println("Connected to database successfully")
 
 	// DEBUG ON CONSOLE
@@ -41,93 +68,50 @@ func Connect() {
 
 	// TODO: Add migrations
 	db.AutoMigrate(
-		&models.Config{},
-		&models.Adnet{},
-		&models.Blacklist{},
-		&models.Content{},
-		&models.Service{},
-		&models.Transaction{},
-		&models.Subscription{},
+		&model.Config{},
+		&model.Schedule{},
+		&model.Adnet{},
+		&model.Blacklist{},
+		&model.Content{},
+		&model.Service{},
+		&model.Transaction{},
+		&model.Subscription{},
 	)
 
 	// TODO: Seed records
-	var config []models.Config
-	var adnet []models.Adnet
-	var content []models.Content
-	var service []models.Service
+	var config []model.Config
+	var schedule []model.Schedule
+	var content []model.Content
+	var service []model.Service
 
 	resultConfig := db.Find(&config)
-	resultAdnet := db.Find(&adnet)
+	resultSchedule := db.Find(&schedule)
 	resultContent := db.Find(&content)
 	resultService := db.Find(&service)
 
 	if resultConfig.RowsAffected == 0 {
 		for i, _ := range configs {
-			db.Model(&models.Config{}).Create(&configs[i])
+			db.Model(&model.Config{}).Create(&configs[i])
 		}
 	}
 
-	if resultAdnet.RowsAffected == 0 {
-		for i, _ := range adnets {
-			db.Model(&models.Adnet{}).Create(&adnets[i])
+	if resultSchedule.RowsAffected == 0 {
+		for i, _ := range schedules {
+			db.Model(&model.Schedule{}).Create(&schedules[i])
 		}
 	}
 
 	if resultContent.RowsAffected == 0 {
 		for i, _ := range contents {
-			db.Model(&models.Content{}).Create(&contents[i])
+			db.Model(&model.Content{}).Create(&contents[i])
 		}
 	}
 
 	if resultService.RowsAffected == 0 {
 		for i, _ := range services {
-			db.Model(&models.Service{}).Create(&services[i])
+			db.Model(&model.Service{}).Create(&services[i])
 		}
 	}
 
-	Database = DbInstance{
-		Db: db,
-	}
-}
-
-var configs = []models.Config{
-	{
-		Name:  "AUTO_MESSAGE_SENDBIRD",
-		Value: "Hi, I'm @v1, please describe the symptoms you are feeling",
-	},
-	{
-		Name:  "AUTO_MESSAGE_SENDBIRD",
-		Value: "Hi, Saya @v1 silahkan jelaskan keluhan kamu",
-	},
-}
-
-var adnets = []models.Adnet{
-	{
-		Name:  "AUTO_MESSAGE_SENDBIRD",
-		Value: "Hi, I'm @v1, please describe the symptoms you are feeling",
-	},
-	{
-		Name:  "AUTO_MESSAGE_SENDBIRD",
-		Value: "Hi, Saya @v1 silahkan jelaskan keluhan kamu",
-	},
-}
-
-var contents = []models.Content{
-	{
-		Name:  "AUTO_MESSAGE_SENDBIRD",
-		Value: "Hi, I'm @v1, please describe the symptoms you are feeling",
-	},
-	{
-		Name:  "AUTO_MESSAGE_SENDBIRD",
-		Value: "Hi, Saya @v1 silahkan jelaskan keluhan kamu",
-	},
-}
-
-var services = []models.Service{
-	{
-		Name: "AUTO_MESSAGE_SENDBIRD",
-	},
-	{
-		Name: "AUTO_MESSAGE_SENDBIRD",
-	},
+	Datasource = &NewDatasource{db: db, sqlDb: sqlDb}
 }
