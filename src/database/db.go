@@ -71,6 +71,7 @@ func Connect() {
 		&model.Config{},
 		&model.Schedule{},
 		&model.Adnet{},
+		&model.Keyword{},
 		&model.Blacklist{},
 		&model.Content{},
 		&model.Service{},
@@ -83,11 +84,13 @@ func Connect() {
 	var schedule []model.Schedule
 	var content []model.Content
 	var service []model.Service
+	var keyword []model.Keyword
 
 	resultConfig := db.Find(&config)
 	resultSchedule := db.Find(&schedule)
 	resultContent := db.Find(&content)
 	resultService := db.Find(&service)
+	resultKeyword := db.Find(&keyword)
 
 	if resultConfig.RowsAffected == 0 {
 		for i, _ := range configs {
@@ -110,6 +113,12 @@ func Connect() {
 	if resultService.RowsAffected == 0 {
 		for i, _ := range services {
 			db.Model(&model.Service{}).Create(&services[i])
+		}
+	}
+
+	if resultKeyword.RowsAffected == 0 {
+		for i, _ := range keywords {
+			db.Model(&model.Keyword{}).Create(&keywords[i])
 		}
 	}
 

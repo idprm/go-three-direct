@@ -1,15 +1,22 @@
 package route
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"waki.mobi/go-yatta-h3i/src/controller"
 )
 
-func SetupRouter() *gin.Engine {
-	router := gin.Default()
+func Setup(app *fiber.App) {
 
-	router.GET("/moh3i", controller.MessageOriginated)
-	router.GET("/drh3i", controller.DeliveryReport)
+	// Default config
+	app.Use(cors.New())
 
-	return router
+	// Config for customization
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3000, https://h3i-linkit.vercel.app",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
+	app.Get("/moh3i", controller.MessageOriginated)
+	app.Get("/drh3i", controller.DeliveryReport)
 }

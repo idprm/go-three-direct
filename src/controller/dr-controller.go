@@ -2,46 +2,39 @@ package controller
 
 import (
 	"encoding/json"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"waki.mobi/go-yatta-h3i/src/pkg/config"
+	"github.com/gofiber/fiber/v2"
 	"waki.mobi/go-yatta-h3i/src/pkg/dto"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 )
 
-func DeliveryReport(c *gin.Context) {
+func DeliveryReport(c *fiber.Ctx) error {
 	/**
 	 * {"msisdn":"62895330590144","shortcode":"998791","status":"DELIVRD","message":"1601666588632810494","ip":"116.206.10.222"}
 	 */
-	var req dto.DRRequest
 
 	/**
-	 * Body Parsing
+	 * Query Parser
 	 */
-	if err := c.ShouldBindQuery(&req); err != nil {
-		c.XML(http.StatusBadRequest, gin.H{
-			"error":   true,
-			"code":    http.StatusBadRequest,
-			"message": err.Error(),
-		})
-		return
+	req := new(dto.DRRequest)
+
+	if err := c.QueryParser(req); err != nil {
+		return err
 	}
 
 	json, _ := json.Marshal(req)
 
 	queue.Rabbit.IntegratePublish(
-		config.ViperEnv("RMQ_DREXCHANGE"),
-		config.ViperEnv("RMQ_DRQUEUE"),
-		config.ViperEnv("RMQ_DRDATATYPE"),
+		"E_DR",
+		"Q_DR",
+		"application/json",
 		"",
 		string(json),
 	)
 
-	c.XML(http.StatusOK, gin.H{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error":   false,
-		"code":    http.StatusOK,
+		"code":    fiber.StatusOK,
 		"message": "Success",
 	})
-	return
 }

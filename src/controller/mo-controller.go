@@ -1,54 +1,44 @@
 package controller
 
 import (
+	"encoding/json"
 	"log"
-	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"waki.mobi/go-yatta-h3i/src/pkg/dto"
+	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 )
 
-func MessageOriginated(c *gin.Context) {
+func MessageOriginated(c *fiber.Ctx) error {
 	/**
 	 * {"mobile_no":"62895330590144","short_code":"99879","message":"REG KEREN","ip":"116.206.10.222"}
 	 */
-
-	var req dto.MORequest
 	/**
-	 * Body Parsing
+	 * Query Parser
 	 */
-	if err := c.ShouldBindQuery(&req); err != nil {
-		c.XML(http.StatusBadRequest, gin.H{
-			"error":   true,
-			"code":    http.StatusBadRequest,
-			"message": err.Error(),
-		})
-		return
+	req := new(dto.MORequest)
+	if err := c.QueryParser(req); err != nil {
+		return err
 	}
 
 	msg := strings.Split(req.Message, " ")
 	log.Println(msg[0])
 	log.Println(msg[1])
 
-	// json, _ := json.Marshal(req)
+	json, _ := json.Marshal(req)
 
-	// if req.MobileNo != "" {
+	queue.Rabbit.IntegratePublish(
+		"E_MO",
+		"Q_MO",
+		"application/json",
+		"",
+		string(json),
+	)
 
-	// 	queue.Rabbit.IntegratePublish(
-	// 		config.ViperEnv("RMQ_MOEXCHANGE"),
-	// 		config.ViperEnv("RMQ_MOQUEUE"),
-	// 		config.ViperEnv("RMQ_MODATATYPE"),
-	// 		"",
-	// 		string(json),
-	// 	)
-	// }
-
-	// push to rabbitmq
-	c.XML(http.StatusOK, gin.H{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error":   false,
-		"code":    http.StatusOK,
+		"code":    fiber.StatusOK,
 		"message": "Success",
 	})
-	return
 }

@@ -1,16 +1,16 @@
 package dto
 
 type DRRequest struct {
-	Msisdn    string `form:"msisdn" json:"msisdn"`
-	ShortCode string `form:"shortcode" json:"shortcode"`
-	Status    string `form:"status" json:"status"`
-	Message   string `form:"message" json:"message"`
-	IpAddress string `form:"ip" json:"ip"`
+	Msisdn    string `query:"msisdn" json:"msisdn"`
+	ShortCode string `query:"shortcode" json:"shortcode"`
+	Status    string `query:"status" json:"status"`
+	Message   string `query:"message" json:"message"`
+	IpAddress string `query:"ip" json:"ip"`
 }
 
 type MORequest struct {
-	MobileNo  string `form:"mobile_no" json:"mobile_no"`
-	ShortCode string `form:"short_code" json:"short_code"`
-	Message   string `form:"message" json:"message"`
-	IpAddress string `form:"ip" json:"ip"`
+	MobileNo  string `query:"mobile_no" json:"mobile_no"`
+	ShortCode string `query:"short_code" json:"short_code"`
+	Message   string `query:"message" json:"message"`
+	IpAddress string `query:"ip" json:"ip"`
 }

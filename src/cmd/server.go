@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"net/http"
-	"time"
+	"log"
+	"os"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/pkg/config"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
@@ -17,27 +17,21 @@ var serverCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// Setup routing rules
-		router := route.SetupRouter()
-
-		// Setup Trusted IP
-		// route.SetTrustedProxies([]string{"192.168.1.2"})
-
-		// Logger
-		router.Use(gin.Logger())
+		/**
+		 * Init Fiber
+		 */
+		app := fiber.New()
 
 		/**
-		 * Access log on browser
+		 * SETUP route
 		 */
-		router.StaticFS("/logs", http.Dir("logs"))
+		route.Setup(app)
 
-		server := &http.Server{
-			Addr:           ":" + config.ViperEnv("APP_PORT"),
-			Handler:        router,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			MaxHeaderBytes: 1 << 20,
+		path, err := os.Getwd()
+		if err != nil {
+			panic(err)
 		}
+		app.Static("/static", path+"/public")
 
 		/**
 		 * SETUP RMQ
@@ -62,6 +56,8 @@ var serverCmd = &cobra.Command{
 			true,
 			config.ViperEnv("RMQ_DRQUEUE"),
 		)
-		server.ListenAndServe()
+
+		log.Fatal(app.Listen(":" + config.ViperEnv("APP_PORT")))
+
 	},
 }

@@ -148,3 +148,18 @@ var services = []model.Service{
 		IsActive:        true,
 	},
 }
+
+var keywords = []model.Keyword{
+	{
+		Name: "YT",
+	},
+	{
+		Name: "YT1",
+	},
+	{
+		Name: "YT2",
+	},
+	{
+		Name: "YT3",
+	},
+}

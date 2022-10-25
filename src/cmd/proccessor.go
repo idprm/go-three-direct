@@ -46,6 +46,8 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	var req dto.MORequest
 	json.Unmarshal(message, &req)
 
+	log.Println(req.ShortCode)
+
 	//
 	var service model.Service
 	database.Datasource.DB().Where("code", req.ShortCode).First(&service)
@@ -54,18 +56,18 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	var subscription model.Subscription
 	activeSub := database.Datasource.DB().Where("msisdn", req.MobileNo).Where("is_active", true).First(&subscription)
 
-	if activeSub.RowsAffected == 1 {
-		subscription.IpAddress = req.IpAddress
-		subscription.IsActive = true
-		database.Datasource.DB().Save(&subscription)
-	}
-
 	if activeSub.RowsAffected == 0 {
 		database.Datasource.DB().Create(&model.Subscription{
 			Msisdn:    req.MobileNo,
+			ServiceID: service.ID,
 			IpAddress: req.IpAddress,
 			IsActive:  true,
 		})
+	}
+
+	if activeSub.RowsAffected == 1 {
+		subscription.IpAddress = req.IpAddress
+		database.Datasource.DB().Save(&subscription)
 	}
 
 	// split message param
