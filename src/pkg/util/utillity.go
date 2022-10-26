@@ -32,3 +32,31 @@ func TrimByteToString(b []byte) string {
 	str := string(b)
 	return strings.Join(strings.Fields(str), " ")
 }
+
+func EscapeChar(res []byte) []byte {
+	response := string(res)
+	r := strings.NewReplacer("&lt;", "<", "&gt;", ">")
+	result := r.Replace(response)
+	return []byte(result)
+}
+
+func ResponseCode(code int) string {
+	var label string
+	switch code {
+	case 0:
+		label = "Successful"
+	case 52:
+		label = "Low Balance"
+	case 54:
+		label = "Billing Error"
+	case 16:
+		label = "Invalid Account Name or ESME ID"
+	case 53:
+		label = "Unknown Subscriber"
+	case 19:
+		label = "Monthly Quota Limit Reached"
+	case 8:
+		label = "Account throttled"
+	}
+	return label
+}

@@ -172,7 +172,7 @@ var consumerRenewalCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				// renewalProccesor(&wg, d.Body)
+				renewalProccesor(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -230,7 +230,7 @@ var consumerRetryCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				// retryProccesor(&wg, d.Body)
+				retryProccesor(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue

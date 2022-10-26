@@ -19,14 +19,14 @@ func MessageTerminated(service model.Service, content model.Content, msisdn stri
 	urlAPI := config.ViperEnv("URL_MT")
 
 	payload := url.Values{}
-	payload.Add("username", service.AuthUser)
-	payload.Add("password", service.AuthPass)
-	payload.Add("reg_delivery", "1")
-	payload.Add("origin_addr", content.OriginAddr)
-	payload.Add("mobileno", msisdn)
-	payload.Add("type", "0")
-	payload.Add("message", content.Value)
-	payload.Add("udh", "0")
+	payload.Add("USERNAME", service.AuthUser)
+	payload.Add("PASSWORD", service.AuthPass)
+	payload.Add("REG_DELIVERY", "1")
+	payload.Add("ORIGIN_ADDR", content.OriginAddr)
+	payload.Add("MOBILENO", msisdn)
+	payload.Add("TYPE", "0")
+	payload.Add("MESSAGE", content.Value)
+	payload.Add("UDH", "0")
 
 	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)
 	if err != nil {
@@ -34,10 +34,10 @@ func MessageTerminated(service model.Service, content model.Content, msisdn stri
 	}
 
 	loggerMT.WithFields(logrus.Fields{
-		"request_url":    urlAPI + "?" + payload.Encode(),
+		"url":            urlAPI + "?" + payload.Encode(),
 		"msisdn":         msisdn,
 		"transaction_id": transaction,
-	}).Info(detailNotifRenewal)
+	}).Info("REQUEST")
 
 	tr := &http.Transport{
 		MaxIdleConns:       10,

@@ -2,18 +2,20 @@ package controller
 
 import (
 	"encoding/json"
-	"log"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/sirupsen/logrus"
 	"waki.mobi/go-yatta-h3i/src/pkg/dto"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
+	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
 func MessageOriginated(c *fiber.Ctx) error {
 	/**
 	 * {"mobile_no":"62895330590144","short_code":"99879","message":"REG KEREN","ip":"116.206.10.222"}
 	 */
+	loggerMo := util.MakeLogger("mo", true)
+
 	/**
 	 * Query Parser
 	 */
@@ -22,9 +24,11 @@ func MessageOriginated(c *fiber.Ctx) error {
 		return err
 	}
 
-	msg := strings.Split(req.Message, " ")
-	log.Println(msg[0])
-	log.Println(msg[1])
+	loggerMo.WithFields(logrus.Fields{
+		"request": req,
+	}).Info()
+
+	// splitIndex1 := strings.ToUpper(string(msg[1][5:]))
 
 	json, _ := json.Marshal(req)
 

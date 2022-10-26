@@ -5,15 +5,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
-)
-
-const (
-	detailPostback = "POSTBACK"
 )
 
 func Postback(service model.Service, msisdn string, transaction string) ([]byte, error) {
@@ -22,6 +19,9 @@ func Postback(service model.Service, msisdn string, transaction string) ([]byte,
 	urlAPI := service.UrlPostback
 
 	payload := url.Values{}
+	payload.Add("partner", "yatta-h3i")
+	payload.Add("px", "")
+	payload.Add("serv_id", strings.ToLower(service.Name))
 	payload.Add("msisdn", msisdn)
 	payload.Add("trxid", transaction)
 
@@ -31,9 +31,10 @@ func Postback(service model.Service, msisdn string, transaction string) ([]byte,
 	}
 
 	loggerPb.WithFields(logrus.Fields{
-		"request_url": urlAPI + "?" + payload.Encode(),
+		"url":         urlAPI + "?" + payload.Encode(),
 		"msisdn":      msisdn,
-	}).Info(detailPostback)
+		"transaction": transaction,
+	}).Info("REQUEST")
 
 	tr := &http.Transport{
 		MaxIdleConns:       10,

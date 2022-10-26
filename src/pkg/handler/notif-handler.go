@@ -12,13 +12,6 @@ import (
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
-const (
-	detailNotifSub     = "NOTIF_SUBSCRIPTION"
-	detailNotifUnsub   = "NOTIF_UNSUB"
-	detailNotifRenewal = "NOTIF_RENEWAL"
-	detailNone         = "-"
-)
-
 /**
  * NOTIF SUBSCRIPTION
  * Method: GET
@@ -31,7 +24,7 @@ func NotifSub(service model.Service, msisdn string, transaction string) ([]byte,
 
 	payload := url.Values{}
 	payload.Add("msisdn", msisdn)
-	payload.Add("trxid", transaction)
+	payload.Add("event", "reg")
 
 	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)
 	if err != nil {
@@ -39,9 +32,10 @@ func NotifSub(service model.Service, msisdn string, transaction string) ([]byte,
 	}
 
 	loggerNotif.WithFields(logrus.Fields{
-		"request_url": urlAPI + "?" + payload.Encode(),
+		"url":         urlAPI + "?" + payload.Encode(),
 		"msisdn":      msisdn,
-	}).Info(detailNotifSub)
+		"transaction": transaction,
+	}).Info("REQUEST")
 
 	tr := &http.Transport{
 		MaxIdleConns:       10,
@@ -74,13 +68,14 @@ func NotifSub(service model.Service, msisdn string, transaction string) ([]byte,
  * Method: GET
  * Endpoint:
  */
-func NotifUnsub(service model.Service, msisdn string) ([]byte, error) {
+func NotifUnsub(service model.Service, msisdn string, transaction string) ([]byte, error) {
 	loggerNotif := util.MakeLogger("notif", true)
 
 	urlAPI := service.UrlNotifUnsub
 
 	payload := url.Values{}
 	payload.Add("msisdn", msisdn)
+	payload.Add("event", "unreg")
 
 	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)
 	if err != nil {
@@ -88,9 +83,10 @@ func NotifUnsub(service model.Service, msisdn string) ([]byte, error) {
 	}
 
 	loggerNotif.WithFields(logrus.Fields{
-		"request_url": urlAPI + "?" + payload.Encode(),
+		"url":         urlAPI + "?" + payload.Encode(),
 		"msisdn":      msisdn,
-	}).Info(detailNotifUnsub)
+		"transaction": transaction,
+	}).Info("REQUEST")
 
 	tr := &http.Transport{
 		MaxIdleConns:       10,
@@ -130,7 +126,7 @@ func NotifRenewal(service model.Service, msisdn string, transaction string) ([]b
 
 	payload := url.Values{}
 	payload.Add("msisdn", msisdn)
-	payload.Add("trxid", transaction)
+	payload.Add("event", "renewal")
 
 	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)
 	if err != nil {
@@ -138,9 +134,10 @@ func NotifRenewal(service model.Service, msisdn string, transaction string) ([]b
 	}
 
 	loggerNotif.WithFields(logrus.Fields{
-		"request_url": urlAPI + "?" + payload.Encode(),
+		"url":         urlAPI + "?" + payload.Encode(),
 		"msisdn":      msisdn,
-	}).Info(detailNotifRenewal)
+		"transaction": transaction,
+	}).Info("REQUEST")
 
 	tr := &http.Transport{
 		MaxIdleConns:       10,
