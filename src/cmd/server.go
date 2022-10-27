@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/pkg/config"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
@@ -21,6 +23,17 @@ var serverCmd = &cobra.Command{
 		 * Init Fiber
 		 */
 		app := fiber.New()
+
+		/**
+		 * Access log on browser
+		 */
+		app.Use("/logs", filesystem.New(filesystem.Config{
+			Root:         http.Dir("./logs"),
+			Browse:       true,
+			Index:        "index.html",
+			NotFoundFile: "404.html",
+			MaxAge:       3600,
+		}))
 
 		/**
 		 * SETUP route
