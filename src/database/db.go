@@ -49,7 +49,7 @@ func Connect() {
 	}
 
 	sqlDb, _ = db.DB()
-	sqlDb.SetConnMaxLifetime(time.Minute * 2)
+	sqlDb.SetConnMaxLifetime(time.Minute * 1)
 	sqlDb.SetMaxOpenConns(10000)
 	sqlDb.SetMaxIdleConns(10000)
 

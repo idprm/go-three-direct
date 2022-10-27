@@ -6,8 +6,20 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"waki.mobi/go-yatta-h3i/src/pkg/config"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
+)
+
+const (
+	RMQ_EXCHANGETYPE    = "direct"
+	RMQ_MODATATYPE      = "application/json"
+	RMQ_MOEXCHANGE      = "E_MO"
+	RMQ_MOQUEUE         = "Q_MO"
+	RMQ_DREXCHANGE      = "E_DR"
+	RMQ_DRQUEUE         = "Q_DR"
+	RMQ_RENEWALEXCHANGE = "E_RENEWAL"
+	RMQ_RENEWALQUEUE    = "Q_RENEWAL"
+	RMQ_RETRYEXCHANGE   = "E_RETRY"
+	RMQ_RETRYQUEUE      = "Q_RETRY"
 )
 
 var consumerMOCmd = &cobra.Command{
@@ -24,19 +36,19 @@ var consumerMOCmd = &cobra.Command{
 		 * QUEUE HANDLER
 		 */
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			RMQ_EXCHANGETYPE,
 			true,
-			config.ViperEnv("RMQ_MOEXCHANGE"),
+			RMQ_MOEXCHANGE,
 			true,
-			config.ViperEnv("RMQ_MOQUEUE"),
+			RMQ_MOQUEUE,
 		)
 
 		messagesData := queue.Rabbit.Subscribe(
 			1,
 			false,
-			config.ViperEnv("RMQ_MOQUEUE"),
-			config.ViperEnv("RMQ_MOEXCHANGE"),
-			config.ViperEnv("RMQ_MOQUEUE"),
+			RMQ_MOQUEUE,
+			RMQ_MOEXCHANGE,
+			RMQ_MOQUEUE,
 		)
 
 		// Initial sync waiting group
@@ -84,19 +96,19 @@ var consumerDRCmd = &cobra.Command{
 		 * QUEUE HANDLER
 		 */
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			RMQ_EXCHANGETYPE,
 			true,
-			config.ViperEnv("RMQ_DREXCHANGE"),
+			RMQ_DREXCHANGE,
 			true,
-			config.ViperEnv("RMQ_DRQUEUE"),
+			RMQ_DRQUEUE,
 		)
 
 		messagesData := queue.Rabbit.Subscribe(
 			1,
 			false,
-			config.ViperEnv("RMQ_DRQUEUE"),
-			config.ViperEnv("RMQ_DREXCHANGE"),
-			config.ViperEnv("RMQ_DRQUEUE"),
+			RMQ_DRQUEUE,
+			RMQ_DREXCHANGE,
+			RMQ_DRQUEUE,
 		)
 
 		// Initial sync waiting group
@@ -144,19 +156,19 @@ var consumerRenewalCmd = &cobra.Command{
 		 * QUEUE HANDLER
 		 */
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			RMQ_EXCHANGETYPE,
 			true,
-			config.ViperEnv("RMQ_RENEWALEXCHANGE"),
+			RMQ_RENEWALEXCHANGE,
 			true,
-			config.ViperEnv("RMQ_RENEWALQUEUE"),
+			RMQ_RENEWALQUEUE,
 		)
 
 		messagesData := queue.Rabbit.Subscribe(
 			1,
 			false,
-			config.ViperEnv("RMQ_RENEWALQUEUE"),
-			config.ViperEnv("RMQ_RENEWALEXCHANGE"),
-			config.ViperEnv("RMQ_RENEWALQUEUE"),
+			RMQ_RENEWALQUEUE,
+			RMQ_RENEWALEXCHANGE,
+			RMQ_RENEWALQUEUE,
 		)
 
 		// Initial sync waiting group
@@ -202,19 +214,19 @@ var consumerRetryCmd = &cobra.Command{
 		 * QUEUE HANDLER
 		 */
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			RMQ_EXCHANGETYPE,
 			true,
-			config.ViperEnv("RMQ_RETRYEXCHANGE"),
+			RMQ_RETRYEXCHANGE,
 			true,
-			config.ViperEnv("RMQ_RETRYQUEUE"),
+			RMQ_RETRYQUEUE,
 		)
 
 		messagesData := queue.Rabbit.Subscribe(
 			1,
 			false,
-			config.ViperEnv("RMQ_RETRYQUEUE"),
-			config.ViperEnv("RMQ_RETRYEXCHANGE"),
-			config.ViperEnv("RMQ_RETRYQUEUE"),
+			RMQ_RETRYQUEUE,
+			RMQ_RETRYEXCHANGE,
+			RMQ_RETRYQUEUE,
 		)
 
 		// Initial sync waiting group

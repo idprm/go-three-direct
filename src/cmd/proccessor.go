@@ -68,7 +68,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	json.Unmarshal(message, &req)
 
 	// get service by code
-	service, _ := query.GetService(req.ShortCode)
+	service, _ := query.GetServiceByCode(req.ShortCode)
 
 	/**
 	 * Query Content
@@ -79,10 +79,6 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 
 	contWrongKey, _ := query.GetContent(service.ID, valErroyKey)
 
-	// checking subscription
-	var subscription model.Subscription
-	activeSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).First(&subscription)
-
 	// split message param
 	msg := strings.Split(req.Message, " ")
 	// define array with index
@@ -91,22 +87,6 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 
 	// split 5 character KEREN
 	splitIndex1 := strings.ToUpper(string(msg[1][5:]))
-
-	if activeSub.RowsAffected == 0 {
-
-		database.Datasource.DB().Create(&model.Subscription{
-			ServiceID: service.ID,
-			Msisdn:    req.MobileNo,
-			Keyword:   strings.ToUpper(req.Message),
-			IpAddress: req.IpAddress,
-			IsActive:  true,
-		})
-	}
-
-	if activeSub.RowsAffected == 1 {
-		subscription.IpAddress = req.IpAddress
-		database.Datasource.DB().Save(&subscription)
-	}
 
 	/**
 	 * Content keyword
@@ -143,6 +123,27 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	 * IF REG
 	 */
 	if index0 == valReg {
+
+		// checking subscription
+		var subscription model.Subscription
+		activeSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).First(&subscription)
+
+		if activeSub.RowsAffected == 0 {
+
+			database.Datasource.DB().Create(&model.Subscription{
+				ServiceID: service.ID,
+				Msisdn:    req.MobileNo,
+				Keyword:   strings.ToUpper(req.Message),
+				IpAddress: req.IpAddress,
+				IsActive:  true,
+			})
+		}
+
+		if activeSub.RowsAffected == 1 {
+			subscription.IpAddress = req.IpAddress
+			database.Datasource.DB().Save(&subscription)
+		}
+
 		/**
 		 * Push MT
 		 */
@@ -309,13 +310,13 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		submitedId := responseXML.Body.Param.SubmitedID
 		statusDetail := responseXML.Body.Param.Text
 
-		subscription.Keyword = strings.ToUpper(req.Message)
-		subscription.SubmitedID = submitedId
-		subscription.UnsubAt = time.Now()
-		subscription.LatestSubject = smsUnsub
-		subscription.IsRetry = false
-		subscription.IsActive = false
-		database.Datasource.DB().Save(&subscription)
+		// subscription.Keyword = strings.ToUpper(req.Message)
+		// subscription.SubmitedID = submitedId
+		// subscription.UnsubAt = time.Now()
+		// subscription.LatestSubject = smsUnsub
+		// subscription.IsRetry = false
+		// subscription.IsActive = false
+		// database.Datasource.DB().Save(&subscription)
 
 		database.Datasource.DB().Create(
 			&model.Transaction{
@@ -355,6 +356,72 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	wg.Done()
 }
 
+func drProccesor(wg *sync.WaitGroup, message []byte) {
+
+	/**
+	 * {"msisdn":"62895635121559","shortcode":"99879","status":"DELIVRD","message":"1601666764269215859","ip":"116.206.10.222"}
+	 */
+
+	// parsing string json
+	var req dto.DRRequest
+	json.Unmarshal(message, &req)
+
+	// get service by code
+	service, _ := query.GetServiceByCode(req.ShortCode)
+
+	// get content
+	// contRenewal, _ := query.GetContent(service.ID, valRenewal)
+
+	var (
+		status     string
+		renewalDay int
+	)
+
+	// checking subscription
+	var subscription model.Subscription
+	activeSub := database.Datasource.DB().
+		Where("service_id", service.ID).
+		Where("msisdn", req.Msisdn).
+		Where("submited_id", req.Message).
+		First(&subscription)
+
+	if activeSub.RowsAffected == 1 {
+		if req.Status == "DELIVRD" {
+			status = "SUCCESS"
+			renewalDay = valRenewalSuccessAt
+			subscription.ChargeAt = time.Now()
+			subscription.IsRetry = false
+
+		} else {
+			status = "FAILED"
+			renewalDay = valRenewalFailedAt
+			subscription.RetryAt = time.Now()
+			subscription.IsRetry = true
+		}
+
+		subscription.LatestSubject = valRenewal
+		subscription.LatestStatus = status
+		subscription.Success = subscription.Success + 1
+		subscription.RenewalAt = time.Now().AddDate(0, 0, renewalDay)
+		database.Datasource.DB().Save(&subscription)
+	}
+
+	var transaction model.Transaction
+	getTransaction := database.Datasource.DB().
+		Where("service_id", service.ID).
+		Where("msisdn", req.Msisdn).
+		Where("submited_id", req.Message).First(&transaction)
+
+	if getTransaction.RowsAffected == 1 {
+		transaction.Status = status
+		transaction.Amount = 0
+		transaction.Subject = valRenewal
+		database.Datasource.DB().Save(&transaction)
+	}
+
+	wg.Done()
+}
+
 func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 	loggerMt := util.MakeLogger("mt", true)
 
@@ -367,17 +434,17 @@ func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 	/**
 	 * Query Service
 	 */
-	var service model.Service
-	database.Datasource.DB().Where("id", sub.ServiceID).First(&service)
+	service, _ := query.GetServiceById(sub.ServiceID)
+
+	// contUnsub, _ := query.GetContent(service.ID, valUnsub)
+
+	// contIsActive, _ := query.GetContent(service.ID, valIsActive)
 
 	/**
 	 * Query Content
 	 */
-	var contRenewal model.Content
-	database.Datasource.DB().Where("name", valRenewal).First(&contRenewal)
-
-	var contInsuft model.Content
-	database.Datasource.DB().Where("name", valInsuft).First(&contInsuft)
+	contRenewal, _ := query.GetContent(service.ID, valRenewal)
+	// contInsuft, _ := query.GetContent(service.ID, valInsuft)
 
 	renewalMt, err := handler.MessageTerminated(service, contRenewal, sub.Msisdn, transactionId)
 	if err != nil {
@@ -472,74 +539,6 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 
 	subscription.SubmitedID = submitedId
 	database.Datasource.DB().Save(&subscription)
-
-	wg.Done()
-}
-
-func drProccesor(wg *sync.WaitGroup, message []byte) {
-
-	/**
-	 * {"msisdn":"62895635121559","shortcode":"99879","status":"DELIVRD","message":"1601666764269215859","ip":"116.206.10.222"}
-	 */
-
-	// parsing string json
-	var req dto.DRRequest
-	json.Unmarshal(message, &req)
-
-	// get service by code
-	var service model.Service
-	database.Datasource.DB().Where("code", req.ShortCode).First(&service)
-
-	// get content
-	var contRenewal model.Content
-	database.Datasource.DB().Where("name", valRenewal).First(&contRenewal)
-
-	var (
-		status     string
-		renewalDay int
-	)
-
-	// checking subscription
-	var subscription model.Subscription
-	activeSub := database.Datasource.DB().
-		Where("service_id", service.ID).
-		Where("msisdn", req.Msisdn).
-		Where("submited_id", req.Message).
-		First(&subscription)
-
-	if activeSub.RowsAffected == 1 {
-		if req.Status == "DELIVRD" {
-			status = "SUCCESS"
-			renewalDay = valRenewalSuccessAt
-			subscription.ChargeAt = time.Now()
-			subscription.IsRetry = false
-
-		} else {
-			status = "FAILED"
-			renewalDay = valRenewalFailedAt
-			subscription.RetryAt = time.Now()
-			subscription.IsRetry = true
-		}
-
-		subscription.LatestSubject = valRenewal
-		subscription.LatestStatus = status
-		subscription.Success = subscription.Success + 1
-		subscription.RenewalAt = time.Now().AddDate(0, 0, renewalDay)
-		database.Datasource.DB().Save(&subscription)
-	}
-
-	var transaction model.Transaction
-	getTransaction := database.Datasource.DB().
-		Where("service_id", service.ID).
-		Where("msisdn", req.Msisdn).
-		Where("submited_id", req.Message).First(&transaction)
-
-	if getTransaction.RowsAffected == 1 {
-		transaction.Status = status
-		transaction.Amount = 0
-		transaction.Subject = valRenewal
-		database.Datasource.DB().Save(&transaction)
-	}
 
 	wg.Done()
 }
