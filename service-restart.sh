@@ -3,18 +3,31 @@ sudo service server restart
 sudo service publisher-renewal restart
 sudo service publisher-retry restart
 
-# sudo service consumer-renewal@one restart
-# sudo service consumer-renewal@two restart
-# sudo service consumer-renewal@three restart
+while IFS='=' read -r key value; do
+  if [ "$key" = "RENEWAL_THREAD" ]; then
+    n=$value
 
-# sudo service consumer-prerenewal@one restart
-# sudo service consumer-prerenewal@two restart
-# sudo service consumer-prerenewal@three restart
+    i=1
+    while [ $i -le $n ]
+    do
+      sudo service consumer-renewal@"thread_$i" restart
+      sleep 1
+      i=$((i+1))
+    done
+  fi
+done < "app.env"
 
-# sudo service consumer-retry@one restart
-# sudo service consumer-retry@two restart
-# sudo service consumer-retry@three restart
 
-# sudo service consumer-trial@one restart
-# sudo service consumer-trial@two restart
-# sudo service consumer-trial@three restart
+while IFS='=' read -r key value; do
+  if [ "$key" = "RETRY_THREAD" ]; then
+    n=$value
+
+    i=1
+    while [ $i -le $n ]
+    do
+      sudo service consumer-retry@"thread_$i" stop
+      sleep 1
+      i=$((i+1))
+    done
+  fi
+done < "app.env"

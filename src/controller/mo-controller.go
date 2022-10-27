@@ -40,9 +40,7 @@ func MessageOriginated(c *fiber.Ctx) error {
 		string(json),
 	)
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error":   false,
-		"code":    fiber.StatusOK,
-		"message": "Success",
+	return c.XML(dto.ResponseXML{
+		Status: "OK",
 	})
 }

@@ -540,7 +540,7 @@ func drProccesor(wg *sync.WaitGroup, message []byte) {
 	getTransaction := database.Datasource.DB().
 		Where("service_id", service.ID).
 		Where("msisdn", req.Msisdn).
-		Where("transaction_id", req.Message).First(&transaction)
+		Where("submited_id", req.Message).First(&transaction)
 
 	if getTransaction.RowsAffected == 1 {
 		transaction.Status = status
