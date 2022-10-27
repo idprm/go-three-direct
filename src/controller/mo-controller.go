@@ -28,8 +28,6 @@ func MessageOriginated(c *fiber.Ctx) error {
 		"request": req,
 	}).Info()
 
-	// splitIndex1 := strings.ToUpper(string(msg[1][5:]))
-
 	json, _ := json.Marshal(req)
 
 	queue.Rabbit.IntegratePublish(

@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/database"
 	"waki.mobi/go-yatta-h3i/src/pkg/config"
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/pkg/query"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 )
 
@@ -50,7 +52,7 @@ var publisherRenewalCmd = &cobra.Command{
 
 			resultLocked := database.Datasource.DB().
 				Where("name", "RENEWAL_PUSH").
-				Where("TIME(locked_at) = TIME(?)", timeNow).
+				Where("TIME(unlocked_at) = TIME(?)", timeNow).
 				Where("status", 0).
 				First(&schedule)
 
@@ -59,7 +61,7 @@ var publisherRenewalCmd = &cobra.Command{
 				database.Datasource.DB().Save(&schedule)
 
 				go func() {
-					// populateRenewal()
+					populateRenewal()
 				}()
 
 			}
@@ -116,7 +118,7 @@ var publisherRetryCmd = &cobra.Command{
 
 			resultLocked := database.Datasource.DB().
 				Where("name", "RENEWAL_PUSH").
-				Where("TIME(locked_at) = TIME(?)", timeNow).
+				Where("TIME(unlocked_at) = TIME(?)", timeNow).
 				Where("status", false).
 				First(&schedule)
 
@@ -125,7 +127,7 @@ var publisherRetryCmd = &cobra.Command{
 				database.Datasource.DB().Save(&schedule)
 
 				go func() {
-					// populateRenewal()
+					populateRetry()
 				}()
 
 			}
@@ -140,4 +142,53 @@ var publisherRetryCmd = &cobra.Command{
 		}
 
 	},
+}
+
+func populateRenewal() {
+
+	subs, _ := query.GetDataPopulate("RENEWAL")
+
+	for _, s := range subs {
+		var sub model.Subscription
+
+		sub.ID = s.ID
+		sub.Msisdn = s.Msisdn
+		sub.ServiceID = s.ServiceID
+		sub.IpAddress = s.IpAddress
+
+		json, _ := json.Marshal(sub)
+
+		queue.Rabbit.IntegratePublish(
+			config.ViperEnv("RMQ_RENEWALEXCHANGE"),
+			config.ViperEnv("RMQ_RENEWALQUEUE"),
+			config.ViperEnv("RMQ_RENEWALDATATYPE"),
+			"",
+			string(json),
+		)
+	}
+
+}
+
+func populateRetry() {
+
+	subs, _ := query.GetDataPopulate("RETRY")
+
+	for _, s := range subs {
+		var sub model.Subscription
+
+		sub.ID = s.ID
+		sub.Msisdn = s.Msisdn
+		sub.ServiceID = s.ServiceID
+		sub.IpAddress = s.IpAddress
+
+		json, _ := json.Marshal(sub)
+
+		queue.Rabbit.IntegratePublish(
+			config.ViperEnv("RMQ_RETRYEXCHANGE"),
+			config.ViperEnv("RMQ_RETRYQUEUE"),
+			config.ViperEnv("RMQ_RETRYDATATYPE"),
+			"",
+			string(json),
+		)
+	}
 }

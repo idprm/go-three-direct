@@ -7,9 +7,9 @@ import (
 type Transaction struct {
 	ID            uint64 `gorm:"primaryKey" json:"id"`
 	TransactionID string `gorm:"size:45" json:"transaction_id"`
-	Msisdn        string `gorm:"size:25" json:"msisdn"`
 	ServiceID     int    `gorm:"size:3" json:"-"`
 	Service       Service
+	Msisdn        string  `gorm:"size:25" json:"msisdn"`
 	SubmitedID    string  `gorm:"size:50" json:"submited_id"`
 	Keyword       string  `gorm:"size:50" json:"keyword"`
 	Adnet         string  `gorm:"size:55;default:null" json:"adnet"`

@@ -12,6 +12,7 @@ import (
 	"waki.mobi/go-yatta-h3i/src/pkg/dto"
 	"waki.mobi/go-yatta-h3i/src/pkg/handler"
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/pkg/query"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
@@ -67,26 +68,16 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	json.Unmarshal(message, &req)
 
 	// get service by code
-	var service model.Service
-	database.Datasource.DB().Where("code", req.ShortCode).First(&service)
+	service, _ := query.GetService(req.ShortCode)
 
 	/**
 	 * Query Content
 	 */
-	var contFirstpush model.Content
-	database.Datasource.DB().Where("name", valFirstpush).First(&contFirstpush)
+	contFirstpush, _ := query.GetContent(service.ID, valFirstpush)
 
-	var contWelcome model.Content
-	database.Datasource.DB().Where("name", valWelcome).First(&contWelcome)
+	contWelcome, _ := query.GetContent(service.ID, valWelcome)
 
-	var contWrongKey model.Content
-	database.Datasource.DB().Where("name", valErroyKey).First(&contWrongKey)
-
-	var contUnsub model.Content
-	database.Datasource.DB().Where("name", valUnsub).First(&contUnsub)
-
-	var contIsActive model.Content
-	database.Datasource.DB().Where("name", valIsActive).First(&contIsActive)
+	contWrongKey, _ := query.GetContent(service.ID, valErroyKey)
 
 	// checking subscription
 	var subscription model.Subscription
@@ -102,6 +93,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	splitIndex1 := strings.ToUpper(string(msg[1][5:]))
 
 	if activeSub.RowsAffected == 0 {
+
 		database.Datasource.DB().Create(&model.Subscription{
 			ServiceID: service.ID,
 			Msisdn:    req.MobileNo,
