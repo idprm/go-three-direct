@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -16,6 +17,7 @@ import (
 func MessageTerminated(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
 
+	log.Println(content.Value)
 	urlAPI := config.ViperEnv("URL_MT")
 
 	payload := url.Values{}
