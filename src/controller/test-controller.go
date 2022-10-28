@@ -69,7 +69,7 @@ func TestMO(c *fiber.Ctx) error {
 	/**
 	 * Query Content
 	 */
-	contFirstpush, _ := query.GetContent(service.ID, "FIRSTPUSH")
+	contFirstpush, _ := query.GetContent(service.ID, valFirstpush)
 
 	contWelcome, _ := query.GetContent(service.ID, valWelcome)
 

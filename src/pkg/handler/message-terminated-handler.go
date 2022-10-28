@@ -30,7 +30,7 @@ func MessageTerminated(service model.Service, content model.Content, msisdn stri
 	payload.Add("MESSAGE", content.Value)
 	payload.Add("UDH", "0")
 
-	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)
+	req, err := http.NewRequest("GET", urlAPI+"push"+"?"+payload.Encode(), nil)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
