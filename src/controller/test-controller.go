@@ -20,7 +20,6 @@ const (
 	valUnreg     = "UNREG"
 	valWelcome   = "WELCOME"
 	valFirstpush = "FIRSTPUSH"
-	valRenewal   = "RENEWAL"
 	valUnsub     = "UNSUB"
 	valInsuft    = "INSUFT"
 	valErroyKey  = "ERROR_KEYWORD"
