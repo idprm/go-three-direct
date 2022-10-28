@@ -206,6 +206,7 @@ func TestMO(c *fiber.Ctx) error {
 				)
 
 			} else {
+
 				labelStatus = "FAILED"
 				dayRenewal = 1
 				purgeAt = time.Time{}
@@ -225,7 +226,7 @@ func TestMO(c *fiber.Ctx) error {
 						RenewalAt:     time.Now().AddDate(0, 0, dayRenewal),
 						PurgeAt:       purgeAt,
 						ChargeAt:      chargeAt,
-						Success:       1,
+						Success:       0,
 						IpAddress:     "",
 						IsRetry:       isRetry,
 						IsPurge:       false,
@@ -367,6 +368,16 @@ func TestMO(c *fiber.Ctx) error {
 			submitedId := resXML.Body.SubmitedID
 			statusCode := resXML.Body.Code
 			statusText := resXML.Body.Text
+
+			// Update subscriptions
+			subscription.UnsubAt = time.Now()
+			subscription.PurgeAt = time.Time{}
+			subscription.RenewalAt = time.Time{}
+			subscription.RetryAt = time.Time{}
+			subscription.IsPurge = false
+			subscription.IsRetry = false
+			subscription.IsActive = false
+			database.Datasource.DB().Save(&subscription)
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
