@@ -39,6 +39,8 @@ const (
 func TestMO(c *fiber.Ctx) error {
 	transactionId := util.GenerateTransactionId()
 	loggerMt := util.MakeLogger("mt", true)
+	loggerNotif := util.MakeLogger("notif", true)
+	loggerPb := util.MakeLogger("pb", true)
 
 	/**
 	 * Query Parser
@@ -204,6 +206,23 @@ func TestMO(c *fiber.Ctx) error {
 					},
 				)
 
+				/**
+				 * Notif sub
+				 */
+				notifSub, err := handler.NotifSub(service, req.MobileNo, transactionId)
+				if err != nil {
+					loggerNotif.WithFields(logrus.Fields{
+						"transaction_id": transactionId,
+						"msisdn":         req.MobileNo,
+						"error":          err.Error(),
+					}).Error()
+				}
+				loggerNotif.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"payload":        util.TrimByteToString(notifSub),
+				}).Info()
+
 			} else {
 
 				labelStatus = "FAILED"
@@ -338,6 +357,23 @@ func TestMO(c *fiber.Ctx) error {
 			)
 		}
 
+		/**
+		 * Postback
+		 */
+		postback, err := handler.Postback(service, req.MobileNo, transactionId)
+		if err != nil {
+			loggerPb.WithFields(logrus.Fields{
+				"transaction_id": transactionId,
+				"msisdn":         req.MobileNo,
+				"error":          err.Error(),
+			}).Error()
+		}
+		loggerPb.WithFields(logrus.Fields{
+			"transaction_id": transactionId,
+			"msisdn":         req.MobileNo,
+			"payload":        util.TrimByteToString(postback),
+		}).Info()
+
 	} else if index0 == valUnreg {
 
 		var subscription model.Subscription
@@ -395,6 +431,23 @@ func TestMO(c *fiber.Ctx) error {
 					Payload:       util.TrimByteToString(unsubMT),
 				},
 			)
+
+			/**
+			 * Notif Unsub
+			 */
+			notifUnsub, err := handler.NotifUnsub(service, req.MobileNo, transactionId)
+			if err != nil {
+				loggerNotif.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"error":          err.Error(),
+				}).Error()
+			}
+			loggerNotif.WithFields(logrus.Fields{
+				"transaction_id": transactionId,
+				"msisdn":         req.MobileNo,
+				"payload":        util.TrimByteToString(notifUnsub),
+			}).Info()
 		}
 
 		// IF SUB NOT EXIST

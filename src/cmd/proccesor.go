@@ -17,51 +17,37 @@ import (
 )
 
 const (
-	valReg          = "REG"
-	valUnreg        = "UNREG"
-	valWelcome      = "WELCOME"
-	valRegistration = "REGISTRATION"
-	valConfirmation = "CONFIRMATION"
-	valFirstpush    = "FIRSTPUSH"
-	valRenewal      = "RENEWAL"
-	valUnsub        = "UNSUB"
-	valInsuft       = "INSUFT"
-	valErroyKey     = "ERROR_KEYWORD"
-	valFailed       = "FAILED"
-	valReminder     = "REMINDER"
-	valIsActive     = "IS_ACTIVE"
-	valPurge        = "PURGE"
+	valReg       = "REG"
+	valUnreg     = "UNREG"
+	valWelcome   = "WELCOME"
+	valFirstpush = "FIRSTPUSH"
+	valUnsub     = "UNSUB"
+	valInsuft    = "INSUFT"
+	valErroyKey  = "ERROR_KEYWORD"
+	valIsActive  = "IS_ACTIVE"
+	valPurge     = "PURGE"
 
 	smsFirstpush = "MT_FIRSTPUSH"
 	smsWelcome   = "MT_WELCOME"
+	smsIsActive  = "MT_ISACTIVE"
+	smsPurge     = "MT_PURGE"
 	smsRenewal   = "MT_RENEWAL"
 	smsInsuff    = "MT_INSUFFICIENT"
 	smsUnsub     = "MT_UNSUB"
-
-	statusFailed  = "FAILED"
-	statusSuccess = "SUCCESS"
-
-	valRenewalSuccessAt = 2
-	valRenewalFailedAt  = 1
-	valReminderAt       = 119
-	valPurgeAt          = 120
+	smsWrongKey  = "MT_WRONGKEY"
 )
 
 func moProccesor(wg *sync.WaitGroup, message []byte) {
 
+	/**
+	 * Sample Request
+	 * {"mobile_no":"62895330590144","short_code":"99879","message":"REG KEREN","ip":"116.206.10.222"}
+	 */
 	loggerMt := util.MakeLogger("mt", true)
 	loggerNotif := util.MakeLogger("notif", true)
 	loggerPb := util.MakeLogger("pb", true)
 
-	/**
-	 * {"mobile_no":"62895330590144","short_code":"99879","message":"REG KEREN","ip":"116.206.10.222"}
-	 */
 	transactionId := util.GenerateTransactionId()
-
-	// init global variable
-	var (
-		content model.Content
-	)
 
 	// parsing string json
 	var req dto.MORequest
@@ -70,6 +56,11 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	// get service by code
 	service, _ := query.GetServiceByCode(req.ShortCode)
 
+	// split message param
+	msg := strings.Split(req.Message, " ")
+	// define array with index
+	index0 := strings.ToUpper(msg[0])
+
 	/**
 	 * Query Content
 	 */
@@ -77,185 +68,377 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 
 	contWelcome, _ := query.GetContent(service.ID, valWelcome)
 
+	contInsuff, _ := query.GetContent(service.ID, valInsuft)
+
+	contIsActive, _ := query.GetContent(service.ID, valIsActive)
+
+	contUnsub, _ := query.GetContent(service.ID, valUnsub)
+
+	contPurge, _ := query.GetContent(service.ID, valPurge)
+
 	contWrongKey, _ := query.GetContent(service.ID, valErroyKey)
 
-	// split message param
-	msg := strings.Split(req.Message, " ")
-	// define array with index
-	index0 := strings.ToUpper(msg[0])
-	index1 := strings.ToUpper(msg[1])
-
 	/**
-	 * Error Keyword
+	 * FILTER BY MESSAGE
 	 */
-	if (index0 != valReg && index0 != valUnreg) || index1 != service.Name {
-		/**
-		 * Push MT
-		 */
-		wrongKeywordMt, err := handler.MessageTerminated(service, contWrongKey, req.MobileNo, transactionId)
-		if err != nil {
-			loggerMt.WithFields(logrus.Fields{
-				"transaction_id": transactionId,
-				"msisdn":         req.MobileNo,
-				"error":          err.Error(),
-			}).Error()
-		}
-		loggerMt.WithFields(logrus.Fields{
-			"transaction_id": transactionId,
-			"msisdn":         req.MobileNo,
-			"payload":        util.TrimByteToString(wrongKeywordMt),
-		}).Info()
-	}
+	if index0 == valReg && strings.ToUpper(req.Message) == "REG KEREN" {
 
-	/**
-	 * IF REG
-	 */
-	if index0 == valReg {
-
-		// checking subscription
 		var subscription model.Subscription
-		activeSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).First(&subscription)
+		existSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subscription)
 
-		if activeSub.RowsAffected == 0 {
+		// IF SUB NOT EXIST
+		if existSub.RowsAffected == 0 {
 
-			database.Datasource.DB().Create(&model.Subscription{
-				ServiceID: service.ID,
-				Msisdn:    req.MobileNo,
-				Keyword:   strings.ToUpper(req.Message),
-				IpAddress: req.IpAddress,
-				IsActive:  true,
-			})
-		}
-
-		if activeSub.RowsAffected == 1 {
-			subscription.IpAddress = req.IpAddress
-			database.Datasource.DB().Save(&subscription)
-		}
-
-		/**
-		 * Push MT
-		 */
-		firstpushMt, err := handler.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
-		if err != nil {
-			loggerMt.WithFields(logrus.Fields{
-				"transaction_id": transactionId,
-				"msisdn":         req.MobileNo,
-				"error":          err.Error(),
-			}).Error()
-		}
-		loggerMt.WithFields(logrus.Fields{
-			"transaction_id": transactionId,
-			"msisdn":         req.MobileNo,
-			"payload":        util.TrimByteToString(firstpushMt),
-		}).Info()
-
-		/**
-		 * Parsing XML Result
-		 */
-		resultFirstpush := util.EscapeChar(firstpushMt)
-		responseXML := dto.Response{}
-		xml.Unmarshal([]byte(resultFirstpush), &responseXML)
-		submitedId := responseXML.Body.SubmitedID
-		resCode := responseXML.Body.Code
-
-		if resCode != 0 {
-			subscription.SubmitedID = submitedId
-			subscription.LatestStatus = statusFailed
-			subscription.LatestSubject = smsFirstpush
-			database.Datasource.DB().Save(&subscription)
-
-			database.Datasource.DB().Create(
-				&model.Transaction{
-					TransactionID: transactionId,
-					ServiceID:     service.ID,
-					SubmitedID:    submitedId,
-					Msisdn:        req.MobileNo,
-					Keyword:       strings.ToUpper(req.Message),
-					Amount:        0,
-					Subject:       smsFirstpush,
-					Status:        statusFailed,
-					StatusDetail:  util.ResponseStatusCode(resCode),
-					IpAddress:     req.IpAddress,
-					Payload:       util.TrimByteToString(firstpushMt),
-				},
+			var (
+				labelStatus  string
+				dayRenewal   int
+				purgeAt      time.Time
+				chargeAt     time.Time
+				isRetry      bool
+				chargeAmount float64
 			)
 
-		} else {
-
-			subscription.SubmitedID = submitedId
-			subscription.LatestStatus = statusSuccess
-			subscription.LatestSubject = smsFirstpush
-			database.Datasource.DB().Save(&subscription)
-
-			database.Datasource.DB().Create(
-				&model.Transaction{
-					TransactionID: transactionId,
-					ServiceID:     service.ID,
-					SubmitedID:    submitedId,
-					Msisdn:        req.MobileNo,
-					Keyword:       strings.ToUpper(req.Message),
-					Amount:        2200,
-					Subject:       smsFirstpush,
-					Status:        statusSuccess,
-					StatusDetail:  util.ResponseStatusCode(resCode),
-					IpAddress:     req.IpAddress,
-					Payload:       util.TrimByteToString(firstpushMt),
-				},
-			)
-
-			/**
-			 * Push Welcome
-			 */
-			welcomeMT, err := handler.MessageTerminated(service, contWelcome, req.MobileNo, transactionId)
+			// sent mt_firstpush
+			firstpushMt, err := handler.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
 			if err != nil {
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
 					"msisdn":         req.MobileNo,
 					"error":          err.Error(),
-				}).Error()
+				}).Error(smsFirstpush)
 			}
 			loggerMt.WithFields(logrus.Fields{
 				"transaction_id": transactionId,
 				"msisdn":         req.MobileNo,
-				"payload":        util.TrimByteToString(welcomeMT),
-			}).Info()
+				"payload":        util.TrimByteToString(firstpushMt),
+			}).Info(smsFirstpush)
 
+			resultFirstpush := util.EscapeChar(firstpushMt)
+			resXML := dto.Response{}
+			xml.Unmarshal([]byte(resultFirstpush), &resXML)
+			submitedId := resXML.Body.SubmitedID
+			statusCode := resXML.Body.Code
+			statusText := resXML.Body.Text
+
+			/**
+			 * IF SUCCESS (STATUS CODE 0)
+			 */
+			if statusCode == 0 {
+				labelStatus = "SUCCESS"
+				dayRenewal = service.Day
+				purgeAt = time.Now().AddDate(0, 0, service.PurgeDay)
+				chargeAt = time.Now()
+				chargeAmount = service.Charge
+				isRetry = false
+
+				// Insert to subscription
+				database.Datasource.DB().Create(
+					&model.Subscription{
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						Keyword:       strings.ToUpper(req.Message),
+						LatestSubject: smsFirstpush,
+						LatestStatus:  labelStatus,
+						Amount:        chargeAmount,
+						RenewalAt:     time.Now().AddDate(0, 0, dayRenewal),
+						PurgeAt:       purgeAt,
+						ChargeAt:      chargeAt,
+						Success:       1,
+						IpAddress:     "",
+						IsRetry:       isRetry,
+						IsPurge:       false,
+						IsActive:      true,
+					},
+				)
+
+				// Insert to Transaction
+				database.Datasource.DB().Create(
+					&model.Transaction{
+						TransactionID: transactionId,
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						SubmitedID:    submitedId,
+						Keyword:       strings.ToUpper(req.Message),
+						Amount:        0,
+						Status:        labelStatus,
+						StatusCode:    statusCode,
+						StatusDetail:  statusText,
+						Subject:       smsFirstpush,
+						IpAddress:     "",
+						Payload:       util.TrimByteToString(firstpushMt),
+					},
+				)
+
+				// sent mt_welcome
+				welcomeMT, err := handler.MessageTerminated(service, contWelcome, req.MobileNo, transactionId)
+				if err != nil {
+					loggerMt.WithFields(logrus.Fields{
+						"transaction_id": transactionId,
+						"msisdn":         req.MobileNo,
+						"error":          err.Error(),
+					}).Error(smsWelcome)
+				}
+				loggerMt.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"payload":        util.TrimByteToString(welcomeMT),
+				}).Info(smsWelcome)
+
+				resultWelcome := util.EscapeChar(welcomeMT)
+				res1XML := dto.Response{}
+				xml.Unmarshal([]byte(resultWelcome), &res1XML)
+				submitedIdwelcome := resXML.Body.SubmitedID
+				statusCodewelcome := resXML.Body.Code
+				statusTextwelcome := resXML.Body.Text
+
+				// Insert to Transaction
+				database.Datasource.DB().Create(
+					&model.Transaction{
+						TransactionID: transactionId,
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						SubmitedID:    submitedIdwelcome,
+						Keyword:       strings.ToUpper(req.Message),
+						Amount:        0,
+						Status:        "",
+						StatusCode:    statusCodewelcome,
+						StatusDetail:  statusTextwelcome,
+						Subject:       smsWelcome,
+						IpAddress:     "",
+						Payload:       util.TrimByteToString(welcomeMT),
+					},
+				)
+
+				/**
+				 * Notif sub
+				 */
+				notifSub, err := handler.NotifSub(service, req.MobileNo, transactionId)
+				if err != nil {
+					loggerNotif.WithFields(logrus.Fields{
+						"transaction_id": transactionId,
+						"msisdn":         req.MobileNo,
+						"error":          err.Error(),
+					}).Error()
+				}
+				loggerNotif.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"payload":        util.TrimByteToString(notifSub),
+				}).Info()
+
+			} else {
+
+				labelStatus = "FAILED"
+				dayRenewal = 1
+				purgeAt = time.Time{}
+				chargeAt = time.Time{}
+				chargeAmount = 0
+				isRetry = true
+
+				// Insert to subscription
+				database.Datasource.DB().Create(
+					&model.Subscription{
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						Keyword:       strings.ToUpper(req.Message),
+						LatestSubject: smsFirstpush,
+						LatestStatus:  labelStatus,
+						Amount:        chargeAmount,
+						RenewalAt:     time.Now().AddDate(0, 0, dayRenewal),
+						PurgeAt:       purgeAt,
+						ChargeAt:      chargeAt,
+						Success:       0,
+						IpAddress:     "",
+						IsRetry:       isRetry,
+						IsPurge:       false,
+						IsActive:      true,
+					},
+				)
+
+				// Insert to Transaction
+				database.Datasource.DB().Create(
+					&model.Transaction{
+						TransactionID: transactionId,
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						SubmitedID:    submitedId,
+						Keyword:       strings.ToUpper(req.Message),
+						Amount:        0,
+						Status:        labelStatus,
+						StatusCode:    statusCode,
+						StatusDetail:  statusText,
+						Subject:       smsFirstpush,
+						IpAddress:     "",
+						Payload:       util.TrimByteToString(firstpushMt),
+					},
+				)
+
+				// sent mt_insuff
+				insuffMT, err := handler.MessageTerminated(service, contInsuff, req.MobileNo, transactionId)
+				if err != nil {
+					loggerMt.WithFields(logrus.Fields{
+						"transaction_id": transactionId,
+						"msisdn":         req.MobileNo,
+						"error":          err.Error(),
+					}).Error(smsInsuff)
+				}
+				loggerMt.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"payload":        util.TrimByteToString(insuffMT),
+				}).Info(smsInsuff)
+
+				resultInsuff := util.EscapeChar(insuffMT)
+				res1XML := dto.Response{}
+				xml.Unmarshal([]byte(resultInsuff), &res1XML)
+				submitedIdInsuff := resXML.Body.SubmitedID
+				statusCodeInsuft := resXML.Body.Code
+				statusTextInsuff := resXML.Body.Text
+
+				// Insert to Transaction
+				database.Datasource.DB().Create(
+					&model.Transaction{
+						TransactionID: transactionId,
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						SubmitedID:    submitedIdInsuff,
+						Keyword:       strings.ToUpper(req.Message),
+						Amount:        0,
+						Status:        "",
+						StatusCode:    statusCodeInsuft,
+						StatusDetail:  statusTextInsuff,
+						Subject:       smsInsuff,
+						IpAddress:     "",
+						Payload:       util.TrimByteToString(insuffMT),
+					},
+				)
+
+			}
+
+		}
+
+		// IF SUB EXIST
+		if existSub.RowsAffected == 1 {
+			// sent mt_is_active
+			isActiveMT, err := handler.MessageTerminated(service, contIsActive, req.MobileNo, transactionId)
+			if err != nil {
+				loggerMt.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"error":          err.Error(),
+				}).Error(smsIsActive)
+			}
+			loggerMt.WithFields(logrus.Fields{
+				"transaction_id": transactionId,
+				"msisdn":         req.MobileNo,
+				"payload":        util.TrimByteToString(isActiveMT),
+			}).Info(smsIsActive)
+
+			resultIsActive := util.EscapeChar(isActiveMT)
+			resXML := dto.Response{}
+			xml.Unmarshal([]byte(resultIsActive), &resXML)
+			submitedId := resXML.Body.SubmitedID
+			statusCode := resXML.Body.Code
+			statusText := resXML.Body.Text
+
+			// Insert to Transaction
 			database.Datasource.DB().Create(
 				&model.Transaction{
 					TransactionID: transactionId,
 					ServiceID:     service.ID,
-					SubmitedID:    submitedId,
 					Msisdn:        req.MobileNo,
+					SubmitedID:    submitedId,
 					Keyword:       strings.ToUpper(req.Message),
 					Amount:        0,
-					Subject:       smsWelcome,
-					Status:        statusSuccess,
-					IpAddress:     req.IpAddress,
-					Payload:       util.TrimByteToString(welcomeMT),
+					Status:        "",
+					StatusCode:    statusCode,
+					StatusDetail:  statusText,
+					Subject:       smsIsActive,
+					IpAddress:     "",
+					Payload:       util.TrimByteToString(isActiveMT),
+				},
+			)
+		}
+
+		/**
+		 * Postback
+		 */
+		postback, err := handler.Postback(service, req.MobileNo, transactionId)
+		if err != nil {
+			loggerPb.WithFields(logrus.Fields{
+				"transaction_id": transactionId,
+				"msisdn":         req.MobileNo,
+				"error":          err.Error(),
+			}).Error()
+		}
+		loggerPb.WithFields(logrus.Fields{
+			"transaction_id": transactionId,
+			"msisdn":         req.MobileNo,
+			"payload":        util.TrimByteToString(postback),
+		}).Info()
+
+	} else if index0 == valUnreg {
+
+		var subscription model.Subscription
+		existSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subscription)
+
+		// IF SUB EXIST
+		if existSub.RowsAffected == 1 {
+
+			// sent mt_unsub
+			unsubMT, err := handler.MessageTerminated(service, contUnsub, req.MobileNo, transactionId)
+			if err != nil {
+				loggerMt.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"error":          err.Error(),
+				}).Error(smsUnsub)
+			}
+			loggerMt.WithFields(logrus.Fields{
+				"transaction_id": transactionId,
+				"msisdn":         req.MobileNo,
+				"payload":        util.TrimByteToString(unsubMT),
+			}).Info(smsUnsub)
+
+			resultUnsub := util.EscapeChar(unsubMT)
+			resXML := dto.Response{}
+			xml.Unmarshal([]byte(resultUnsub), &resXML)
+			submitedId := resXML.Body.SubmitedID
+			statusCode := resXML.Body.Code
+			statusText := resXML.Body.Text
+
+			// Update subscriptions
+			subscription.UnsubAt = time.Now()
+			subscription.PurgeAt = time.Time{}
+			subscription.RenewalAt = time.Time{}
+			subscription.RetryAt = time.Time{}
+			subscription.IsPurge = false
+			subscription.IsRetry = false
+			subscription.IsActive = false
+			database.Datasource.DB().Save(&subscription)
+
+			// Insert to Transaction
+			database.Datasource.DB().Create(
+				&model.Transaction{
+					TransactionID: transactionId,
+					ServiceID:     service.ID,
+					Msisdn:        req.MobileNo,
+					SubmitedID:    submitedId,
+					Keyword:       strings.ToUpper(req.Message),
+					Amount:        0,
+					Status:        "",
+					StatusCode:    statusCode,
+					StatusDetail:  statusText,
+					Subject:       smsUnsub,
+					IpAddress:     "",
+					Payload:       util.TrimByteToString(unsubMT),
 				},
 			)
 
 			/**
-			 * Postback
+			 * Notif Unsub
 			 */
-			postback, err := handler.Postback(service, req.MobileNo, transactionId)
-			if err != nil {
-				loggerPb.WithFields(logrus.Fields{
-					"transaction_id": transactionId,
-					"msisdn":         req.MobileNo,
-					"error":          err.Error(),
-				}).Error()
-			}
-			loggerPb.WithFields(logrus.Fields{
-				"transaction_id": transactionId,
-				"msisdn":         req.MobileNo,
-				"payload":        util.TrimByteToString(postback),
-			}).Info()
-
-			/**
-			 * Notif sub
-			 */
-			notifSub, err := handler.NotifSub(service, req.MobileNo, transactionId)
+			notifUnsub, err := handler.NotifUnsub(service, req.MobileNo, transactionId)
 			if err != nil {
 				loggerNotif.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
@@ -266,87 +449,101 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			loggerNotif.WithFields(logrus.Fields{
 				"transaction_id": transactionId,
 				"msisdn":         req.MobileNo,
-				"payload":        util.TrimByteToString(notifSub),
+				"payload":        util.TrimByteToString(notifUnsub),
 			}).Info()
-
 		}
 
-	}
+		// IF SUB NOT EXIST
+		if existSub.RowsAffected == 0 {
+			// sent mt_purge
+			purgeMT, err := handler.MessageTerminated(service, contPurge, req.MobileNo, transactionId)
+			if err != nil {
+				loggerMt.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"error":          err.Error(),
+				}).Error(smsPurge)
+			}
+			loggerMt.WithFields(logrus.Fields{
+				"transaction_id": transactionId,
+				"msisdn":         req.MobileNo,
+				"payload":        util.TrimByteToString(purgeMT),
+			}).Info(smsPurge)
 
-	/**
-	 * IF UNREG
-	 */
-	if index0 == valUnreg {
+			resultPurge := util.EscapeChar(purgeMT)
+			resXML := dto.Response{}
+			xml.Unmarshal([]byte(resultPurge), &resXML)
+			submitedId := resXML.Body.SubmitedID
+			statusCode := resXML.Body.Code
+			statusText := resXML.Body.Text
 
-		unregMt, err := handler.MessageTerminated(service, content, req.MobileNo, transactionId)
+			// Insert to Transaction
+			database.Datasource.DB().Create(
+				&model.Transaction{
+					TransactionID: transactionId,
+					ServiceID:     service.ID,
+					Msisdn:        req.MobileNo,
+					SubmitedID:    submitedId,
+					Keyword:       strings.ToUpper(req.Message),
+					Amount:        0,
+					Status:        "",
+					StatusCode:    statusCode,
+					StatusDetail:  statusText,
+					Subject:       smsPurge,
+					IpAddress:     "",
+					Payload:       util.TrimByteToString(purgeMT),
+				},
+			)
+		}
+
+	} else {
+		// sent mt_wrongkey
+		wrongKeywordMt, err := handler.MessageTerminated(service, contWrongKey, req.MobileNo, transactionId)
 		if err != nil {
 			loggerMt.WithFields(logrus.Fields{
 				"transaction_id": transactionId,
 				"msisdn":         req.MobileNo,
 				"error":          err.Error(),
-			}).Error()
+			}).Error(smsWrongKey)
 		}
 		loggerMt.WithFields(logrus.Fields{
 			"transaction_id": transactionId,
 			"msisdn":         req.MobileNo,
-			"payload":        util.TrimByteToString(unregMt),
-		}).Info()
+			"payload":        util.TrimByteToString(wrongKeywordMt),
+		}).Info(smsWrongKey)
 
-		resultUnreg := util.EscapeChar(unregMt)
-		responseXML := dto.Response{}
-		xml.Unmarshal([]byte(resultUnreg), &responseXML)
-		submitedId := responseXML.Body.SubmitedID
-		statusDetail := responseXML.Body.Text
+		resultPurge := util.EscapeChar(wrongKeywordMt)
+		resXML := dto.Response{}
+		xml.Unmarshal([]byte(resultPurge), &resXML)
+		submitedId := resXML.Body.SubmitedID
+		statusCode := resXML.Body.Code
+		statusText := resXML.Body.Text
 
-		// subscription.Keyword = strings.ToUpper(req.Message)
-		// subscription.SubmitedID = submitedId
-		// subscription.UnsubAt = time.Now()
-		// subscription.LatestSubject = smsUnsub
-		// subscription.IsRetry = false
-		// subscription.IsActive = false
-		// database.Datasource.DB().Save(&subscription)
-
+		// Insert to Transaction
 		database.Datasource.DB().Create(
 			&model.Transaction{
 				TransactionID: transactionId,
 				ServiceID:     service.ID,
-				SubmitedID:    submitedId,
 				Msisdn:        req.MobileNo,
+				SubmitedID:    submitedId,
 				Keyword:       strings.ToUpper(req.Message),
 				Amount:        0,
-				Subject:       smsUnsub,
 				Status:        "",
-				StatusDetail:  statusDetail,
-				IpAddress:     req.IpAddress,
-				Payload:       util.TrimByteToString(unregMt),
+				StatusCode:    statusCode,
+				StatusDetail:  statusText,
+				Subject:       smsWrongKey,
+				IpAddress:     "",
+				Payload:       util.TrimByteToString(wrongKeywordMt),
 			},
 		)
-
-		/**
-		 * Notif Unsub
-		 */
-		notifUnsub, err := handler.NotifUnsub(service, req.MobileNo, transactionId)
-		if err != nil {
-			loggerNotif.WithFields(logrus.Fields{
-				"transaction_id": transactionId,
-				"msisdn":         req.MobileNo,
-				"error":          err.Error(),
-			}).Error()
-		}
-		loggerNotif.WithFields(logrus.Fields{
-			"transaction_id": transactionId,
-			"msisdn":         req.MobileNo,
-			"payload":        util.TrimByteToString(notifUnsub),
-		}).Info()
-
 	}
 
 	wg.Done()
 }
 
 func drProccesor(wg *sync.WaitGroup, message []byte) {
-
 	/**
+	 * Sample Request
 	 * {"msisdn":"62895635121559","shortcode":"99879","status":"DELIVRD","message":"1601666764269215859","ip":"116.206.10.222"}
 	 */
 
@@ -354,56 +551,21 @@ func drProccesor(wg *sync.WaitGroup, message []byte) {
 	var req dto.DRRequest
 	json.Unmarshal(message, &req)
 
-	// get service by code
-	service, _ := query.GetServiceByCode(req.ShortCode)
+	var transaction model.Transaction
+	existTrans := database.Datasource.DB().Where("msisdn", req.Msisdn).Where("submited_id", req.Message).First(&transaction)
 
-	// get content
-	// contRenewal, _ := query.GetContent(service.ID, valRenewal)
+	if existTrans.RowsAffected == 1 {
 
-	var (
-		status     string
-		renewalDay int
-	)
-
-	// checking subscription
-	var subscription model.Subscription
-	activeSub := database.Datasource.DB().
-		Where("service_id", service.ID).
-		Where("msisdn", req.Msisdn).
-		Where("submited_id", req.Message).
-		First(&subscription)
-
-	if activeSub.RowsAffected == 1 {
+		var labelStatus string
 		if req.Status == "DELIVRD" {
-			status = "SUCCESS"
-			renewalDay = valRenewalSuccessAt
-			subscription.ChargeAt = time.Now()
-			subscription.IsRetry = false
-
+			labelStatus = "SUCCESS"
 		} else {
-			status = "FAILED"
-			renewalDay = valRenewalFailedAt
-			subscription.RetryAt = time.Now()
-			subscription.IsRetry = true
+			labelStatus = "FAILED"
 		}
 
-		subscription.LatestSubject = valRenewal
-		subscription.LatestStatus = status
-		subscription.Success = subscription.Success + 1
-		subscription.RenewalAt = time.Now().AddDate(0, 0, renewalDay)
-		database.Datasource.DB().Save(&subscription)
-	}
-
-	var transaction model.Transaction
-	getTransaction := database.Datasource.DB().
-		Where("service_id", service.ID).
-		Where("msisdn", req.Msisdn).
-		Where("submited_id", req.Message).First(&transaction)
-
-	if getTransaction.RowsAffected == 1 {
-		transaction.Status = status
-		transaction.Amount = 0
-		transaction.Subject = valRenewal
+		transaction.Status = labelStatus
+		transaction.DrStatus = req.Status
+		transaction.DrStatusDetail = util.DRStatus(req.Status)
 		database.Datasource.DB().Save(&transaction)
 	}
 
@@ -411,69 +573,6 @@ func drProccesor(wg *sync.WaitGroup, message []byte) {
 }
 
 func renewalProccesor(wg *sync.WaitGroup, message []byte) {
-	loggerMt := util.MakeLogger("mt", true)
-
-	transactionId := util.GenerateTransactionId()
-
-	// parsing string json
-	var sub model.Subscription
-	json.Unmarshal(message, &sub)
-
-	/**
-	 * Query Service
-	 */
-	service, _ := query.GetServiceById(sub.ServiceID)
-
-	// contUnsub, _ := query.GetContent(service.ID, valUnsub)
-
-	// contIsActive, _ := query.GetContent(service.ID, valIsActive)
-
-	/**
-	 * Query Content
-	 */
-	contRenewal, _ := query.GetContent(service.ID, valRenewal)
-	// contInsuft, _ := query.GetContent(service.ID, valInsuft)
-
-	renewalMt, err := handler.MessageTerminated(service, contRenewal, sub.Msisdn, transactionId)
-	if err != nil {
-		loggerMt.WithFields(logrus.Fields{
-			"transaction_id": transactionId,
-			"msisdn":         sub.Msisdn,
-			"error":          err.Error(),
-		}).Error()
-	}
-	loggerMt.WithFields(logrus.Fields{
-		"transaction_id": transactionId,
-		"msisdn":         sub.Msisdn,
-		"payload":        util.TrimByteToString(renewalMt),
-	}).Info()
-
-	resultRenewal := util.EscapeChar(renewalMt)
-	responseXML := dto.Response{}
-	xml.Unmarshal([]byte(resultRenewal), &responseXML)
-	submitedId := responseXML.Body.SubmitedID
-	statusDetail := responseXML.Body.Text
-
-	var subscription model.Subscription
-	database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", sub.Msisdn).First(&subscription)
-
-	subscription.SubmitedID = submitedId
-	subscription.LatestSubject = smsRenewal
-	subscription.LatestStatus = ""
-	database.Datasource.DB().Save(&subscription)
-
-	database.Datasource.DB().Create(&model.Transaction{
-		ServiceID:    sub.ServiceID,
-		Msisdn:       sub.Msisdn,
-		Keyword:      sub.Keyword,
-		SubmitedID:   submitedId,
-		Subject:      smsRenewal,
-		Status:       "",
-		StatusDetail: statusDetail,
-		Payload:      util.TrimByteToString(renewalMt),
-		IpAddress:    sub.IpAddress,
-	})
-
 	wg.Done()
 }
 
@@ -495,7 +594,7 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 	 * Query Content
 	 */
 	var contRenewal model.Content
-	database.Datasource.DB().Where("name", valRenewal).First(&contRenewal)
+	database.Datasource.DB().Where("name", "").First(&contRenewal)
 
 	var contInsuft model.Content
 	database.Datasource.DB().Where("name", valInsuft).First(&contInsuft)
