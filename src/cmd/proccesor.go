@@ -45,7 +45,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	 */
 	loggerMt := util.MakeLogger("mt", true)
 	loggerNotif := util.MakeLogger("notif", true)
-	loggerPb := util.MakeLogger("pb", true)
+	loggerPb := util.MakeLogger("postback", true)
 
 	transactionId := util.GenerateTransactionId()
 

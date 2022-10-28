@@ -40,7 +40,7 @@ func TestMO(c *fiber.Ctx) error {
 	transactionId := util.GenerateTransactionId()
 	loggerMt := util.MakeLogger("mt", true)
 	loggerNotif := util.MakeLogger("notif", true)
-	loggerPb := util.MakeLogger("pb", true)
+	loggerPb := util.MakeLogger("postback", true)
 
 	/**
 	 * Query Parser
