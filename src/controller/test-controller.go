@@ -80,7 +80,7 @@ func TestMO(c *fiber.Ctx) error {
 	/**
 	 * FILTER BY MESSAGE
 	 */
-	if index0 == valReg || index1 == "KEREN" {
+	if index0 == valReg && index1 == service.Name {
 		firstpushMt, err := handler.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
 		if err != nil {
 			loggerMt.WithFields(logrus.Fields{
