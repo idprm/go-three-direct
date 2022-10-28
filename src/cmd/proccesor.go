@@ -167,8 +167,8 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		resultFirstpush := util.EscapeChar(firstpushMt)
 		responseXML := dto.Response{}
 		xml.Unmarshal([]byte(resultFirstpush), &responseXML)
-		submitedId := responseXML.Body.Param.SubmitedID
-		resCode := responseXML.Body.Param.Code
+		submitedId := responseXML.Body.SubmitedID
+		resCode := responseXML.Body.Code
 
 		if resCode != 0 {
 			subscription.SubmitedID = submitedId
@@ -307,8 +307,8 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		resultUnreg := util.EscapeChar(unregMt)
 		responseXML := dto.Response{}
 		xml.Unmarshal([]byte(resultUnreg), &responseXML)
-		submitedId := responseXML.Body.Param.SubmitedID
-		statusDetail := responseXML.Body.Param.Text
+		submitedId := responseXML.Body.SubmitedID
+		statusDetail := responseXML.Body.Text
 
 		// subscription.Keyword = strings.ToUpper(req.Message)
 		// subscription.SubmitedID = submitedId
@@ -463,8 +463,8 @@ func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 	resultRenewal := util.EscapeChar(renewalMt)
 	responseXML := dto.Response{}
 	xml.Unmarshal([]byte(resultRenewal), &responseXML)
-	submitedId := responseXML.Body.Param.SubmitedID
-	statusDetail := responseXML.Body.Param.Text
+	submitedId := responseXML.Body.SubmitedID
+	statusDetail := responseXML.Body.Text
 
 	var subscription model.Subscription
 	database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", sub.Msisdn).First(&subscription)
@@ -532,7 +532,7 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 	resultRetry := util.EscapeChar(retryMt)
 	responseXML := dto.Response{}
 	xml.Unmarshal([]byte(resultRetry), &responseXML)
-	submitedId := responseXML.Body.Param.SubmitedID
+	submitedId := responseXML.Body.SubmitedID
 
 	var subscription model.Subscription
 	database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", sub.Msisdn).First(&subscription)

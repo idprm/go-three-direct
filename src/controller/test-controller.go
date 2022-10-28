@@ -69,9 +69,6 @@ func TestMO(c *fiber.Ctx) error {
 	// define array with index
 	index0 := strings.ToUpper(msg[0])
 
-	// split 5 character KEREN[SPLIT]
-	// splitIndex1 := strings.ToUpper(string(msg[1][5:]))
-
 	/**
 	 * Query Content
 	 */
@@ -125,8 +122,8 @@ func TestMO(c *fiber.Ctx) error {
 			resultFirstpush := util.EscapeChar(firstpushMt)
 			resXML := dto.Response{}
 			xml.Unmarshal([]byte(resultFirstpush), &resXML)
-			submitedId := resXML.Body.Param.SubmitedID
-			statusCode := resXML.Body.Param.Code
+			submitedId := resXML.Body.SubmitedID
+			statusCode := resXML.Body.Code
 
 			// if status code 0 = success
 			if statusCode == 0 {
@@ -199,8 +196,8 @@ func TestMO(c *fiber.Ctx) error {
 			resultWelcome := util.EscapeChar(welcomeMT)
 			res1XML := dto.Response{}
 			xml.Unmarshal([]byte(resultWelcome), &res1XML)
-			submitedIdwelcome := resXML.Body.Param.SubmitedID
-			statusCodewelcome := resXML.Body.Param.Code
+			submitedIdwelcome := resXML.Body.SubmitedID
+			statusCodewelcome := resXML.Body.Code
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
@@ -240,8 +237,8 @@ func TestMO(c *fiber.Ctx) error {
 			resultIsActive := util.EscapeChar(isActiveMT)
 			resXML := dto.Response{}
 			xml.Unmarshal([]byte(resultIsActive), &resXML)
-			submitedId := resXML.Body.Param.SubmitedID
-			statusCode := resXML.Body.Param.Code
+			submitedId := resXML.Body.SubmitedID
+			statusCode := resXML.Body.Code
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
@@ -287,8 +284,8 @@ func TestMO(c *fiber.Ctx) error {
 			resultUnsub := util.EscapeChar(unsubMT)
 			resXML := dto.Response{}
 			xml.Unmarshal([]byte(resultUnsub), &resXML)
-			submitedId := resXML.Body.Param.SubmitedID
-			statusCode := resXML.Body.Param.Code
+			submitedId := resXML.Body.SubmitedID
+			statusCode := resXML.Body.Code
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
@@ -328,8 +325,8 @@ func TestMO(c *fiber.Ctx) error {
 			resultPurge := util.EscapeChar(purgeMT)
 			resXML := dto.Response{}
 			xml.Unmarshal([]byte(resultPurge), &resXML)
-			submitedId := resXML.Body.Param.SubmitedID
-			statusCode := resXML.Body.Param.Code
+			submitedId := resXML.Body.SubmitedID
+			statusCode := resXML.Body.Code
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
@@ -365,11 +362,11 @@ func TestMO(c *fiber.Ctx) error {
 			"payload":        util.TrimByteToString(wrongKeywordMt),
 		}).Info(smsWrongKey)
 
-		resultPurge := util.EscapeChar(wrongKeywordMt)
+		// resultPurge := util.EscapeChar()
 		resXML := dto.Response{}
-		xml.Unmarshal([]byte(resultPurge), &resXML)
-		submitedId := resXML.Body.Param.SubmitedID
-		statusCode := resXML.Body.Param.Code
+		xml.Unmarshal([]byte(wrongKeywordMt), &resXML)
+		submitedId := resXML.Body.SubmitedID
+		statusCode := resXML.Body.Code
 
 		// Insert to Transaction
 		database.Datasource.DB().Create(
