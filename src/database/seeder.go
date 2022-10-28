@@ -77,18 +77,6 @@ var contents = []model.Content{
 	},
 	{
 		ServiceID:  1,
-		Name:       "REGISTRATION",
-		OriginAddr: "998790",
-		Value:      "Kamu akan berlangganan layanan REG KEREN tarif 2200/sms/2 hari, layanan aktif s/d 180hr. Balas YA utk lanjut.",
-	},
-	{
-		ServiceID:  1,
-		Name:       "CONFIRMATION",
-		OriginAddr: "998790",
-		Value:      "Terimakasih, permintaan kamu diproses",
-	},
-	{
-		ServiceID:  1,
 		Name:       "FIRSTPUSH",
 		OriginAddr: "998791",
 		Value:      "Kamu terdaftar di REG KEREN tarif 2200/sms/2 hari. Klik aplikasi REG KEREN https://bit.ly/3BGcVgj. (Tarif data berlaku). Stop: UNREG KEREN ke 99879 CS:02152964211",
@@ -97,7 +85,7 @@ var contents = []model.Content{
 		ServiceID:  1,
 		Name:       "RENEWAL",
 		OriginAddr: "998791",
-		Value:      "Layanan KEREN km aktif 180hr s/d @renewal_date di https://bit.ly/3BGcVgj. Tarif Rp2200/sms/2 hari selama 180hr. Stop: UNREG KEREN,CS:021-52964211",
+		Value:      "Layanan KEREN km aktif 180hr s/d @purge_date di https://bit.ly/3BGcVgj. Tarif Rp2200/sms/2 hari selama 180hr. Stop: UNREG KEREN,CS:021-52964211",
 	},
 	{
 		ServiceID:  1,
@@ -116,12 +104,6 @@ var contents = []model.Content{
 		Name:       "ERROR_KEYWORD",
 		OriginAddr: "998790",
 		Value:      "Keyword yang kamu masukkan salah. Ketik REG KEREN ke 99879. CS: 02152964211",
-	},
-	{
-		ServiceID:  1,
-		Name:       "FAILED",
-		OriginAddr: "998790",
-		Value:      "Maaf, Anda belum berhasil berlangganan",
 	},
 	{
 		ServiceID:  1,
@@ -152,26 +134,11 @@ var services = []model.Service{
 		AuthPass:        "y4tt43r4",
 		Day:             2,
 		Charge:          2200,
-		PurgeDay:        180,
+		PurgeDay:        179,
 		UrlNotifSub:     "https://tri.fortune360.mobi/api/subscription/subscribe",
 		UrlNotifUnsub:   "https://tri.fortune360.mobi/api/subscription/unsubscribe",
 		UrlNotifRenewal: "https://tri.fortune360.mobi/api/subscription/renewal",
 		UrlPostback:     "http://kbtools.net/id-yatta-h3i.php",
 		IsActive:        true,
-	},
-}
-
-var keywords = []model.Keyword{
-	{
-		Name: "YT",
-	},
-	{
-		Name: "YT1",
-	},
-	{
-		Name: "YT2",
-	},
-	{
-		Name: "YT3",
 	},
 }

@@ -16,20 +16,16 @@ import (
 )
 
 const (
-	valReg          = "REG"
-	valUnreg        = "UNREG"
-	valWelcome      = "WELCOME"
-	valRegistration = "REGISTRATION"
-	valConfirmation = "CONFIRMATION"
-	valFirstpush    = "FIRSTPUSH"
-	valRenewal      = "RENEWAL"
-	valUnsub        = "UNSUB"
-	valInsuft       = "INSUFT"
-	valErroyKey     = "ERROR_KEYWORD"
-	valFailed       = "FAILED"
-	valReminder     = "REMINDER"
-	valIsActive     = "IS_ACTIVE"
-	valPurge        = "PURGE"
+	valReg       = "REG"
+	valUnreg     = "UNREG"
+	valWelcome   = "WELCOME"
+	valFirstpush = "FIRSTPUSH"
+	valRenewal   = "RENEWAL"
+	valUnsub     = "UNSUB"
+	valInsuft    = "INSUFT"
+	valErroyKey  = "ERROR_KEYWORD"
+	valIsActive  = "IS_ACTIVE"
+	valPurge     = "PURGE"
 
 	smsFirstpush = "MT_FIRSTPUSH"
 	smsWelcome   = "MT_WELCOME"
@@ -39,14 +35,6 @@ const (
 	smsInsuff    = "MT_INSUFFICIENT"
 	smsUnsub     = "MT_UNSUB"
 	smsWrongKey  = "MT_WRONGKEY"
-
-	statusFailed  = "FAILED"
-	statusSuccess = "SUCCESS"
-
-	valRenewalSuccessAt = 2
-	valRenewalFailedAt  = 1
-	valReminderAt       = 119
-	valPurgeAt          = 120
 )
 
 func TestMO(c *fiber.Ctx) error {
@@ -75,6 +63,8 @@ func TestMO(c *fiber.Ctx) error {
 	contFirstpush, _ := query.GetContent(service.ID, valFirstpush)
 
 	contWelcome, _ := query.GetContent(service.ID, valWelcome)
+
+	contInsuff, _ := query.GetContent(service.ID, valInsuft)
 
 	contIsActive, _ := query.GetContent(service.ID, valIsActive)
 
@@ -124,8 +114,11 @@ func TestMO(c *fiber.Ctx) error {
 			xml.Unmarshal([]byte(resultFirstpush), &resXML)
 			submitedId := resXML.Body.SubmitedID
 			statusCode := resXML.Body.Code
+			statusText := resXML.Body.Text
 
-			// if status code 0 = success
+			/**
+			 * IF SUCCESS (STATUS CODE 0)
+			 */
 			if statusCode == 0 {
 				labelStatus = "SUCCESS"
 				dayRenewal = service.Day
@@ -133,6 +126,85 @@ func TestMO(c *fiber.Ctx) error {
 				chargeAt = time.Now()
 				chargeAmount = service.Charge
 				isRetry = false
+
+				// Insert to subscription
+				database.Datasource.DB().Create(
+					&model.Subscription{
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						Keyword:       strings.ToUpper(req.Message),
+						LatestSubject: smsFirstpush,
+						LatestStatus:  labelStatus,
+						Amount:        chargeAmount,
+						RenewalAt:     time.Now().AddDate(0, 0, dayRenewal),
+						PurgeAt:       purgeAt,
+						ChargeAt:      chargeAt,
+						Success:       1,
+						IpAddress:     "",
+						IsRetry:       isRetry,
+						IsPurge:       false,
+						IsActive:      true,
+					},
+				)
+
+				// Insert to Transaction
+				database.Datasource.DB().Create(
+					&model.Transaction{
+						TransactionID: transactionId,
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						SubmitedID:    submitedId,
+						Keyword:       strings.ToUpper(req.Message),
+						Amount:        0,
+						Status:        labelStatus,
+						StatusCode:    statusCode,
+						StatusDetail:  statusText,
+						Subject:       smsFirstpush,
+						IpAddress:     "",
+						Payload:       util.TrimByteToString(firstpushMt),
+					},
+				)
+
+				// sent mt_welcome
+				welcomeMT, err := handler.MessageTerminated(service, contWelcome, req.MobileNo, transactionId)
+				if err != nil {
+					loggerMt.WithFields(logrus.Fields{
+						"transaction_id": transactionId,
+						"msisdn":         req.MobileNo,
+						"error":          err.Error(),
+					}).Error(smsWelcome)
+				}
+				loggerMt.WithFields(logrus.Fields{
+					"transaction_id": transactionId,
+					"msisdn":         req.MobileNo,
+					"payload":        util.TrimByteToString(welcomeMT),
+				}).Info(smsWelcome)
+
+				resultWelcome := util.EscapeChar(welcomeMT)
+				res1XML := dto.Response{}
+				xml.Unmarshal([]byte(resultWelcome), &res1XML)
+				submitedIdwelcome := resXML.Body.SubmitedID
+				statusCodewelcome := resXML.Body.Code
+				statusTextwelcome := resXML.Body.Text
+
+				// Insert to Transaction
+				database.Datasource.DB().Create(
+					&model.Transaction{
+						TransactionID: transactionId,
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						SubmitedID:    submitedIdwelcome,
+						Keyword:       strings.ToUpper(req.Message),
+						Amount:        0,
+						Status:        "",
+						StatusCode:    statusCodewelcome,
+						StatusDetail:  statusTextwelcome,
+						Subject:       smsWelcome,
+						IpAddress:     "",
+						Payload:       util.TrimByteToString(welcomeMT),
+					},
+				)
+
 			} else {
 				labelStatus = "FAILED"
 				dayRenewal = 1
@@ -140,81 +212,87 @@ func TestMO(c *fiber.Ctx) error {
 				chargeAt = time.Time{}
 				chargeAmount = 0
 				isRetry = true
-			}
 
-			// Insert to subscription
-			database.Datasource.DB().Create(
-				&model.Subscription{
-					ServiceID:     service.ID,
-					Msisdn:        req.MobileNo,
-					Keyword:       strings.ToUpper(req.Message),
-					LatestSubject: smsFirstpush,
-					LatestStatus:  labelStatus,
-					Amount:        chargeAmount,
-					RenewalAt:     time.Now().AddDate(0, 0, dayRenewal),
-					PurgeAt:       purgeAt,
-					ChargeAt:      chargeAt,
-					Success:       1,
-					IpAddress:     "",
-					IsRetry:       isRetry,
-					IsActive:      true,
-				},
-			)
+				// Insert to subscription
+				database.Datasource.DB().Create(
+					&model.Subscription{
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						Keyword:       strings.ToUpper(req.Message),
+						LatestSubject: smsFirstpush,
+						LatestStatus:  labelStatus,
+						Amount:        chargeAmount,
+						RenewalAt:     time.Now().AddDate(0, 0, dayRenewal),
+						PurgeAt:       purgeAt,
+						ChargeAt:      chargeAt,
+						Success:       1,
+						IpAddress:     "",
+						IsRetry:       isRetry,
+						IsPurge:       false,
+						IsActive:      true,
+					},
+				)
 
-			// Insert to Transaction
-			database.Datasource.DB().Create(
-				&model.Transaction{
-					TransactionID: transactionId,
-					ServiceID:     service.ID,
-					Msisdn:        req.MobileNo,
-					SubmitedID:    submitedId,
-					Keyword:       strings.ToUpper(req.Message),
-					Amount:        0,
-					Status:        labelStatus,
-					StatusDetail:  util.ResponseStatusCode(statusCode),
-					Subject:       smsFirstpush,
-					IpAddress:     "",
-					Payload:       util.TrimByteToString(firstpushMt),
-				},
-			)
+				// Insert to Transaction
+				database.Datasource.DB().Create(
+					&model.Transaction{
+						TransactionID: transactionId,
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						SubmitedID:    submitedId,
+						Keyword:       strings.ToUpper(req.Message),
+						Amount:        0,
+						Status:        labelStatus,
+						StatusCode:    statusCode,
+						StatusDetail:  statusText,
+						Subject:       smsFirstpush,
+						IpAddress:     "",
+						Payload:       util.TrimByteToString(firstpushMt),
+					},
+				)
 
-			// sent mt_welcome
-			welcomeMT, err := handler.MessageTerminated(service, contWelcome, req.MobileNo, transactionId)
-			if err != nil {
+				// sent mt_insuff
+				insuffMT, err := handler.MessageTerminated(service, contInsuff, req.MobileNo, transactionId)
+				if err != nil {
+					loggerMt.WithFields(logrus.Fields{
+						"transaction_id": transactionId,
+						"msisdn":         req.MobileNo,
+						"error":          err.Error(),
+					}).Error(smsInsuff)
+				}
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
 					"msisdn":         req.MobileNo,
-					"error":          err.Error(),
-				}).Error(smsWelcome)
+					"payload":        util.TrimByteToString(insuffMT),
+				}).Info(smsInsuff)
+
+				resultInsuff := util.EscapeChar(insuffMT)
+				res1XML := dto.Response{}
+				xml.Unmarshal([]byte(resultInsuff), &res1XML)
+				submitedIdInsuff := resXML.Body.SubmitedID
+				statusCodeInsuft := resXML.Body.Code
+				statusTextInsuff := resXML.Body.Text
+
+				// Insert to Transaction
+				database.Datasource.DB().Create(
+					&model.Transaction{
+						TransactionID: transactionId,
+						ServiceID:     service.ID,
+						Msisdn:        req.MobileNo,
+						SubmitedID:    submitedIdInsuff,
+						Keyword:       strings.ToUpper(req.Message),
+						Amount:        0,
+						Status:        "",
+						StatusCode:    statusCodeInsuft,
+						StatusDetail:  statusTextInsuff,
+						Subject:       smsInsuff,
+						IpAddress:     "",
+						Payload:       util.TrimByteToString(insuffMT),
+					},
+				)
+
 			}
-			loggerMt.WithFields(logrus.Fields{
-				"transaction_id": transactionId,
-				"msisdn":         req.MobileNo,
-				"payload":        util.TrimByteToString(welcomeMT),
-			}).Info(smsWelcome)
 
-			resultWelcome := util.EscapeChar(welcomeMT)
-			res1XML := dto.Response{}
-			xml.Unmarshal([]byte(resultWelcome), &res1XML)
-			submitedIdwelcome := resXML.Body.SubmitedID
-			statusCodewelcome := resXML.Body.Code
-
-			// Insert to Transaction
-			database.Datasource.DB().Create(
-				&model.Transaction{
-					TransactionID: transactionId,
-					ServiceID:     service.ID,
-					Msisdn:        req.MobileNo,
-					SubmitedID:    submitedIdwelcome,
-					Keyword:       strings.ToUpper(req.Message),
-					Amount:        0,
-					Status:        "",
-					StatusDetail:  util.ResponseStatusCode(statusCodewelcome),
-					Subject:       smsWelcome,
-					IpAddress:     "",
-					Payload:       util.TrimByteToString(welcomeMT),
-				},
-			)
 		}
 
 		// IF SUB EXIST
@@ -239,6 +317,7 @@ func TestMO(c *fiber.Ctx) error {
 			xml.Unmarshal([]byte(resultIsActive), &resXML)
 			submitedId := resXML.Body.SubmitedID
 			statusCode := resXML.Body.Code
+			statusText := resXML.Body.Text
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
@@ -250,7 +329,8 @@ func TestMO(c *fiber.Ctx) error {
 					Keyword:       strings.ToUpper(req.Message),
 					Amount:        0,
 					Status:        "",
-					StatusDetail:  util.ResponseStatusCode(statusCode),
+					StatusCode:    statusCode,
+					StatusDetail:  statusText,
 					Subject:       smsIsActive,
 					IpAddress:     "",
 					Payload:       util.TrimByteToString(isActiveMT),
@@ -286,6 +366,7 @@ func TestMO(c *fiber.Ctx) error {
 			xml.Unmarshal([]byte(resultUnsub), &resXML)
 			submitedId := resXML.Body.SubmitedID
 			statusCode := resXML.Body.Code
+			statusText := resXML.Body.Text
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
@@ -297,7 +378,8 @@ func TestMO(c *fiber.Ctx) error {
 					Keyword:       strings.ToUpper(req.Message),
 					Amount:        0,
 					Status:        "",
-					StatusDetail:  util.ResponseStatusCode(statusCode),
+					StatusCode:    statusCode,
+					StatusDetail:  statusText,
 					Subject:       smsUnsub,
 					IpAddress:     "",
 					Payload:       util.TrimByteToString(unsubMT),
@@ -327,6 +409,7 @@ func TestMO(c *fiber.Ctx) error {
 			xml.Unmarshal([]byte(resultPurge), &resXML)
 			submitedId := resXML.Body.SubmitedID
 			statusCode := resXML.Body.Code
+			statusText := resXML.Body.Text
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
@@ -338,7 +421,8 @@ func TestMO(c *fiber.Ctx) error {
 					Keyword:       strings.ToUpper(req.Message),
 					Amount:        0,
 					Status:        "",
-					StatusDetail:  util.ResponseStatusCode(statusCode),
+					StatusCode:    statusCode,
+					StatusDetail:  statusText,
 					Subject:       smsPurge,
 					IpAddress:     "",
 					Payload:       util.TrimByteToString(purgeMT),
@@ -362,11 +446,12 @@ func TestMO(c *fiber.Ctx) error {
 			"payload":        util.TrimByteToString(wrongKeywordMt),
 		}).Info(smsWrongKey)
 
-		// resultPurge := util.EscapeChar()
+		resultPurge := util.EscapeChar(wrongKeywordMt)
 		resXML := dto.Response{}
-		xml.Unmarshal([]byte(wrongKeywordMt), &resXML)
+		xml.Unmarshal([]byte(resultPurge), &resXML)
 		submitedId := resXML.Body.SubmitedID
 		statusCode := resXML.Body.Code
+		statusText := resXML.Body.Text
 
 		// Insert to Transaction
 		database.Datasource.DB().Create(
@@ -378,7 +463,8 @@ func TestMO(c *fiber.Ctx) error {
 				Keyword:       strings.ToUpper(req.Message),
 				Amount:        0,
 				Status:        "",
-				StatusDetail:  util.ResponseStatusCode(statusCode),
+				StatusCode:    statusCode,
+				StatusDetail:  statusText,
 				Subject:       smsWrongKey,
 				IpAddress:     "",
 				Payload:       util.TrimByteToString(wrongKeywordMt),
@@ -392,6 +478,9 @@ func TestMO(c *fiber.Ctx) error {
 }
 
 func TestDR(c *fiber.Ctx) error {
+	/**
+	 * {"msisdn":"62895635121559","shortcode":"99879","status":"DELIVRD","message":"1601666764269215859","ip":"116.206.10.222"}
+	 */
 
 	/**
 	 * Query Parser
@@ -399,6 +488,24 @@ func TestDR(c *fiber.Ctx) error {
 	req := new(dto.DRRequest)
 	if err := c.QueryParser(req); err != nil {
 		return err
+	}
+
+	var transaction model.Transaction
+	existTrans := database.Datasource.DB().Where("msisdn", req.Msisdn).Where("submited_id", req.Message).First(&transaction)
+
+	if existTrans.RowsAffected == 1 {
+
+		var labelStatus string
+		if req.Status == "DELIVRD" {
+			labelStatus = "SUCCESS"
+		} else {
+			labelStatus = "FAILED"
+		}
+
+		transaction.Status = labelStatus
+		transaction.DrStatus = req.Status
+		transaction.DrStatusDetail = util.DRStatus(req.Status)
+		database.Datasource.DB().Save(&transaction)
 	}
 
 	return c.XML(dto.ResponseXML{

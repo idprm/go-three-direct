@@ -85,18 +85,6 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	index0 := strings.ToUpper(msg[0])
 	index1 := strings.ToUpper(msg[1])
 
-	// split 5 character KEREN
-	splitIndex1 := strings.ToUpper(string(msg[1][5:]))
-
-	/**
-	 * Content keyword
-	 */
-	var contkeyword model.Keyword
-	database.Datasource.DB().Where("name", splitIndex1).First(&contkeyword)
-
-	var adnet model.Adnet
-	database.Datasource.DB().Where("name", splitIndex1).First(&adnet)
-
 	/**
 	 * Error Keyword
 	 */

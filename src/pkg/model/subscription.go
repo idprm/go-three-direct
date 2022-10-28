@@ -25,6 +25,7 @@ type Subscription struct {
 	Success       uint      `gorm:"size:4;default:null" json:"success"`
 	IpAddress     string    `gorm:"size:45;default:null" json:"ip_address"`
 	IsRetry       bool      `gorm:"type:bool" json:"is_retry"`
+	IsPurge       bool      `gorm:"type:bool" json:"is_purge"`
 	IsActive      bool      `gorm:"type:bool" json:"is_active"`
 	gorm.Model
 }
