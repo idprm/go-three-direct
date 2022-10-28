@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
@@ -70,8 +69,6 @@ var consumerMOCmd = &cobra.Command{
 				// Manual consume queue
 				d.Ack(false)
 
-				time.Sleep(1 * time.Millisecond)
-
 			}
 
 		}()
@@ -129,8 +126,6 @@ var consumerDRCmd = &cobra.Command{
 
 				// Manual consume queue
 				d.Ack(false)
-
-				time.Sleep(1 * time.Millisecond)
 
 			}
 
