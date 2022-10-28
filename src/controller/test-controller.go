@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/xml"
+	"log"
 	"strings"
 	"time"
 
@@ -64,15 +65,27 @@ func TestMO(c *fiber.Ctx) error {
 	// get service by code
 	service, _ := query.GetServiceByCode(req.ShortCode)
 
+	var (
+		index0 string
+		index1 string
+	)
 	// split message param
 	msg := strings.Split(req.Message, " ")
-	// define array with index
-	index0 := strings.ToUpper(msg[0])
-	index1 := strings.ToUpper(msg[1])
 
+	var index = map[string]string{"first": strings.ToUpper(msg[0]), "second": strings.ToUpper(msg[1])}
+
+	// if len(msg) > 0 {
+	// 	// define array with index
+	// 	index0 =
+	// 	index1 =
+	// } else {
+	// 	index0 = "s"
+	// 	index1 = ""
+	// }
+
+	log.Println(index)
 	// split 5 character KEREN[SPLIT]
 	// splitIndex1 := strings.ToUpper(string(msg[1][5:]))
-
 	/**
 	 * Query Content
 	 */
