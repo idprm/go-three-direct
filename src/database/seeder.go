@@ -152,7 +152,7 @@ var services = []model.Service{
 		AuthPass:        "y4tt43r4",
 		Day:             2,
 		Charge:          2200,
-		TrialDay:        0,
+		PurgeDay:        180,
 		UrlNotifSub:     "https://tri.fortune360.mobi/api/subscription/subscribe",
 		UrlNotifUnsub:   "https://tri.fortune360.mobi/api/subscription/unsubscribe",
 		UrlNotifRenewal: "https://tri.fortune360.mobi/api/subscription/renewal",

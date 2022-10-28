@@ -40,7 +40,7 @@ func EscapeChar(res []byte) []byte {
 	return []byte(result)
 }
 
-func ResponseCode(code int) string {
+func ResponseStatusCode(code int) string {
 	var label string
 	switch code {
 	case 0:
@@ -57,6 +57,31 @@ func ResponseCode(code int) string {
 		label = "Monthly Quota Limit Reached"
 	case 8:
 		label = "Account throttled"
+	}
+	return label
+}
+
+func DRStatus(name string) string {
+	var label string
+	switch name {
+	case "ENROUTE":
+		label = "The message is enroute."
+	case "DELIVRD":
+		label = "The message was successfully delivered."
+	case "EXPIRED":
+		label = "The SMSC was unable to deliver the message in a specified amount of time. For instance when the phone was turned off."
+	case "DELETED":
+		label = "The message was deleted."
+	case "UNDELIV":
+		label = "The SMS was unable to deliver the message. For instance, when the number does not exist."
+	case "ACCEPTD":
+		label = "The SMS was accepted and will be send."
+	case "UNKNOWN":
+		label = "Unknown error occurred."
+	case "REJECTD":
+		label = "The message was rejected. The provider could have blocked phone numbers in this range."
+	case "SKIPPED":
+		label = "The message was skipped."
 	}
 	return label
 }

@@ -8,7 +8,7 @@ type Service struct {
 	AuthPass        string  `gorm:"size:45" json:"auth_pass"`
 	Day             int     `gorm:"size:3" json:"day"`
 	Charge          float64 `gorm:"size:6" json:"charge"`
-	TrialDay        int     `gorm:"size:3" json:"trial_day"`
+	PurgeDay        int     `gorm:"size:3" json:"purge_day"`
 	UrlNotifSub     string  `gorm:"size:150" json:"url_notif_sub"`
 	UrlNotifUnsub   string  `gorm:"size:150" json:"url_notif_unsub"`
 	UrlNotifRenewal string  `gorm:"size:150" json:"url_notif_renewal"`
