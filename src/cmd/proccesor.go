@@ -131,25 +131,48 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				chargeAmount = service.Charge
 				isRetry = false
 
-				// Insert to subscription
-				database.Datasource.DB().Create(
-					&model.Subscription{
-						ServiceID:     service.ID,
-						Msisdn:        req.MobileNo,
-						Keyword:       strings.ToUpper(req.Message),
-						LatestSubject: smsFirstpush,
-						LatestStatus:  labelStatus,
-						Amount:        chargeAmount,
-						RenewalAt:     time.Now().AddDate(0, 0, dayRenewal),
-						PurgeAt:       purgeAt,
-						ChargeAt:      chargeAt,
-						Success:       1,
-						IpAddress:     "",
-						IsRetry:       isRetry,
-						IsPurge:       false,
-						IsActive:      true,
-					},
-				)
+				var sub model.Subscription
+				isAlready := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).First(&sub)
+
+				if isAlready.RowsAffected == 0 {
+					// Insert to subscription
+					database.Datasource.DB().Create(
+						&model.Subscription{
+							ServiceID:     service.ID,
+							Msisdn:        req.MobileNo,
+							Keyword:       strings.ToUpper(req.Message),
+							LatestSubject: smsFirstpush,
+							LatestStatus:  labelStatus,
+							Amount:        chargeAmount,
+							RenewalAt:     time.Now().AddDate(0, 0, dayRenewal),
+							PurgeAt:       purgeAt,
+							ChargeAt:      chargeAt,
+							Success:       1,
+							IpAddress:     "",
+							IsRetry:       isRetry,
+							IsPurge:       false,
+							IsActive:      true,
+						},
+					)
+
+				}
+
+				if isAlready.RowsAffected == 1 {
+					// Update to subscription
+					sub.Keyword = strings.ToUpper(req.Message)
+					sub.LatestSubject = smsFirstpush
+					sub.LatestStatus = labelStatus
+					sub.Amount = chargeAmount
+					sub.RenewalAt = time.Now().AddDate(0, 0, dayRenewal)
+					sub.PurgeAt = purgeAt
+					sub.ChargeAt = chargeAt
+					sub.Success = 1
+					sub.IpAddress = ""
+					sub.IsRetry = isRetry
+					sub.IsPurge = false
+					sub.IsActive = true
+					database.Datasource.DB().First(&sub)
+				}
 
 				// Insert to Transaction
 				database.Datasource.DB().Create(
@@ -187,9 +210,9 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				resultWelcome := util.EscapeChar(welcomeMT)
 				res1XML := dto.Response{}
 				xml.Unmarshal([]byte(resultWelcome), &res1XML)
-				submitedIdwelcome := resXML.Body.SubmitedID
-				statusCodewelcome := resXML.Body.Code
-				statusTextwelcome := resXML.Body.Text
+				submitedIdwelcome := res1XML.Body.SubmitedID
+				statusCodewelcome := res1XML.Body.Code
+				statusTextwelcome := res1XML.Body.Text
 
 				// Insert to Transaction
 				database.Datasource.DB().Create(
