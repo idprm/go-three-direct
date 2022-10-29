@@ -382,11 +382,15 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 
 	} else if index0 == valUnreg {
 
-		var subscription model.Subscription
-		existSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subscription)
+		var subUnreg model.Subscription
+		existSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subUnreg)
 
 		// IF SUB EXIST
 		if existSub.RowsAffected == 1 {
+
+			var (
+				labelStatus string
+			)
 
 			// sent mt_unsub
 			unsubMT, err := handler.MessageTerminated(service, contUnsub, req.MobileNo, transactionId)
@@ -410,15 +414,24 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			statusCode := resXML.Body.Code
 			statusText := resXML.Body.Text
 
+			if statusCode == 0 {
+				labelStatus = "SUCCESS"
+
+			} else {
+				labelStatus = "FAILED"
+			}
+
 			// Update subscriptions
-			subscription.UnsubAt = time.Now()
-			subscription.PurgeAt = time.Time{}
-			subscription.RenewalAt = time.Time{}
-			subscription.RetryAt = time.Time{}
-			subscription.IsPurge = false
-			subscription.IsRetry = false
-			subscription.IsActive = false
-			database.Datasource.DB().Save(&subscription)
+			subUnreg.LatestStatus = labelStatus
+			subUnreg.LatestSubject = smsUnsub
+			subUnreg.UnsubAt = time.Now()
+			subUnreg.PurgeAt = time.Time{}
+			subUnreg.RenewalAt = time.Time{}
+			subUnreg.RetryAt = time.Time{}
+			subUnreg.IsPurge = false
+			subUnreg.IsRetry = false
+			subUnreg.IsActive = false
+			database.Datasource.DB().Save(&subUnreg)
 
 			// Insert to Transaction
 			database.Datasource.DB().Create(
