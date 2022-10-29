@@ -226,8 +226,12 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					"payload":        util.TrimByteToString(notifSub),
 				}).Info()
 
-			} else {
+			}
 
+			/**
+			 * IF INSUFF (STATUS CODE 52)
+			 */
+			if statusCode == 52 {
 				labelStatus = "FAILED"
 				dayRenewal = 1
 				purgeAt = time.Time{}
@@ -312,7 +316,6 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 						Payload:       util.TrimByteToString(insuffMT),
 					},
 				)
-
 			}
 
 		}
