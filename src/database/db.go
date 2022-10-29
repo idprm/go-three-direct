@@ -68,7 +68,6 @@ func Connect() {
 
 	// TODO: Add migrations
 	db.AutoMigrate(
-		&model.Config{},
 		&model.Schedule{},
 		&model.Adnet{},
 		&model.Blacklist{},
@@ -79,21 +78,13 @@ func Connect() {
 	)
 
 	// TODO: Seed records
-	var config []model.Config
 	var schedule []model.Schedule
 	var content []model.Content
 	var service []model.Service
 
-	resultConfig := db.Find(&config)
 	resultSchedule := db.Find(&schedule)
 	resultContent := db.Find(&content)
 	resultService := db.Find(&service)
-
-	if resultConfig.RowsAffected == 0 {
-		for i, _ := range configs {
-			db.Model(&model.Config{}).Create(&configs[i])
-		}
-	}
 
 	if resultSchedule.RowsAffected == 0 {
 		for i, _ := range schedules {

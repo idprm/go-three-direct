@@ -422,6 +422,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			}
 
 			// Update subscriptions
+			subUnreg.Keyword = strings.ToUpper(req.Message)
 			subUnreg.LatestStatus = labelStatus
 			subUnreg.LatestSubject = smsUnsub
 			subUnreg.UnsubAt = time.Now()
@@ -635,12 +636,11 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 	resultRetry := util.EscapeChar(retryMt)
 	responseXML := dto.Response{}
 	xml.Unmarshal([]byte(resultRetry), &responseXML)
-	submitedId := responseXML.Body.SubmitedID
+	// submitedId := responseXML.Body.SubmitedID
 
 	var subscription model.Subscription
 	database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", sub.Msisdn).First(&subscription)
 
-	subscription.SubmitedID = submitedId
 	database.Datasource.DB().Save(&subscription)
 
 	wg.Done()

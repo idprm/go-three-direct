@@ -10,7 +10,6 @@ type Subscription struct {
 	ID            uint64 `gorm:"primaryKey" json:"id"`
 	ServiceID     int    `gorm:"size:3" json:"service_id"`
 	Service       Service
-	SubmitedID    string    `gorm:"size:50" json:"submited_id"`
 	Msisdn        string    `gorm:"size:25" json:"msisdn"`
 	Keyword       string    `gorm:"100" json:"keyword"`
 	Adnet         string    `gorm:"size:55;default:null" json:"adnet"`

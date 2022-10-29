@@ -6,53 +6,6 @@ import (
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 )
 
-var configs = []model.Config{
-	{
-		Name:  "AUTH_USER",
-		Value: "tU1qzr659H6VG3zGGwz38dIApGGVMmrY",
-	},
-	{
-		Name:  "AUTH_PASS",
-		Value: "RwrHIWKfNanVhdlN",
-	},
-	{
-		Name:  "PARTNER_ID",
-		Value: "linkit",
-	},
-	{
-		Name:  "PRODUCT_ID",
-		Value: "KoTest",
-	},
-	{
-		Name:  "TRANSACTION_ID",
-		Value: "KoTest123",
-	},
-	{
-		Name:  "CHARGABLE_AMOUNT",
-		Value: "2",
-	},
-	{
-		Name:  "CORRELATION_ID",
-		Value: "123",
-	},
-	{
-		Name:  "COOLING_PERIOD",
-		Value: "10",
-	},
-	{
-		Name:  "QUARANTINE_DAY",
-		Value: "10",
-	},
-	{
-		Name:  "RENEWAL_DAY",
-		Value: "2",
-	},
-	{
-		Name:  "TRIAL_DAY",
-		Value: "1",
-	},
-}
-
 var schedules = []model.Schedule{
 	{
 		Name:       "RENEWAL_PUSH",
