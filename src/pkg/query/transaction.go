@@ -36,7 +36,7 @@ func RemoveTransact(db *sql.DB, t model.Transaction) error {
 }
 
 func InsertTransact(db *sql.DB, t model.Transaction) error {
-	query := "INSERT INTO transactions(transaction_id, service_id, msisdn, adnet, amount, status, status_detail, subject, ip_address, payload, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	query := "INSERT INTO transactions(transaction_id, service_id, msisdn, submited_id, keyword, adnet, amount, status, status_detail, subject, ip_address, payload, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()
 	stmt, err := db.PrepareContext(ctx, query)
@@ -45,7 +45,7 @@ func InsertTransact(db *sql.DB, t model.Transaction) error {
 		return err
 	}
 	defer stmt.Close()
-	res, err := stmt.ExecContext(ctx, t.TransactionID, t.ServiceID, t.Msisdn, t.Adnet, t.Amount, t.Status, t.StatusDetail, t.Subject, t.IpAddress, t.Payload, time.Now(), time.Now())
+	res, err := stmt.ExecContext(ctx, t.TransactionID, t.ServiceID, t.Msisdn, t.SubmitedID, t.Keyword, t.Adnet, t.Amount, t.Status, t.StatusDetail, t.Subject, t.IpAddress, t.Payload, time.Now(), time.Now())
 	if err != nil {
 		log.Printf("Error %s when inserting row into transactions table", err)
 		return err

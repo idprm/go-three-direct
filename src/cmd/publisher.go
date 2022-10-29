@@ -47,13 +47,13 @@ var publisherRenewalCmd = &cobra.Command{
 			resultPublish := database.Datasource.DB().
 				Where("name", "RENEWAL_PUSH").
 				Where("TIME(publish_at) = TIME(?)", timeNow).
-				Where("status", 1).
+				Where("status", true).
 				First(&schedule)
 
 			resultLocked := database.Datasource.DB().
 				Where("name", "RENEWAL_PUSH").
-				Where("TIME(unlocked_at) = TIME(?)", timeNow).
-				Where("status", 0).
+				Where("TIME(un_locked_at) = TIME(?)", timeNow).
+				Where("status", false).
 				First(&schedule)
 
 			if resultPublish.RowsAffected == 1 {
@@ -118,7 +118,7 @@ var publisherRetryCmd = &cobra.Command{
 
 			resultLocked := database.Datasource.DB().
 				Where("name", "RENEWAL_PUSH").
-				Where("TIME(unlocked_at) = TIME(?)", timeNow).
+				Where("TIME(un_locked_at) = TIME(?)", timeNow).
 				Where("status", false).
 				First(&schedule)
 
@@ -128,6 +128,72 @@ var publisherRetryCmd = &cobra.Command{
 
 				go func() {
 					populateRetry()
+				}()
+
+			}
+
+			if resultLocked.RowsAffected == 1 {
+				schedule.Status = true
+				database.Datasource.DB().Save(&schedule)
+			}
+
+			time.Sleep(timeDuration * time.Minute)
+
+		}
+
+	},
+}
+
+var publisherPurgeCmd = &cobra.Command{
+	Use:   "publisher-retry",
+	Short: "Retry CLI",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * SETUP RMQ
+		 */
+		queue.SetupQueue()
+
+		/**
+		 * SETUP CHANNEL
+		 */
+		queue.Rabbit.SetUpChannel(
+			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			true,
+			config.ViperEnv("RMQ_RETRYEXCHANGE"),
+			true,
+			config.ViperEnv("RMQ_RETRYQUEUE"),
+		)
+
+		/**
+		 * Looping schedule
+		 */
+		timeDuration := time.Duration(1)
+
+		for {
+			currentTime := time.Now()
+			timeNow := currentTime.Format("15:04")
+
+			var schedule model.Schedule
+			resultPublish := database.Datasource.DB().
+				Where("name", "PURGE_PUSH").
+				Where("TIME(publish_at) = TIME(?)", timeNow).
+				Where("status", true).
+				First(&schedule)
+
+			resultLocked := database.Datasource.DB().
+				Where("name", "PURGE_PUSH").
+				Where("TIME(un_locked_at) = TIME(?)", timeNow).
+				Where("status", false).
+				First(&schedule)
+
+			if resultPublish.RowsAffected == 1 {
+				schedule.Status = false
+				database.Datasource.DB().Save(&schedule)
+
+				go func() {
+					populatePurge()
 				}()
 
 			}
@@ -154,6 +220,7 @@ func populateRenewal() {
 		sub.ID = s.ID
 		sub.Msisdn = s.Msisdn
 		sub.ServiceID = s.ServiceID
+		sub.Keyword = s.Keyword
 		sub.IpAddress = s.IpAddress
 
 		json, _ := json.Marshal(sub)
@@ -179,6 +246,7 @@ func populateRetry() {
 		sub.ID = s.ID
 		sub.Msisdn = s.Msisdn
 		sub.ServiceID = s.ServiceID
+		sub.Keyword = s.Keyword
 		sub.IpAddress = s.IpAddress
 
 		json, _ := json.Marshal(sub)
@@ -187,6 +255,30 @@ func populateRetry() {
 			config.ViperEnv("RMQ_RETRYEXCHANGE"),
 			config.ViperEnv("RMQ_RETRYQUEUE"),
 			config.ViperEnv("RMQ_RETRYDATATYPE"),
+			"",
+			string(json),
+		)
+	}
+}
+
+func populatePurge() {
+	subs, _ := query.GetDataPopulate("PURGE")
+
+	for _, s := range subs {
+		var sub model.Subscription
+
+		sub.ID = s.ID
+		sub.Msisdn = s.Msisdn
+		sub.ServiceID = s.ServiceID
+		sub.Keyword = s.Keyword
+		sub.IpAddress = s.IpAddress
+
+		json, _ := json.Marshal(sub)
+
+		queue.Rabbit.IntegratePublish(
+			config.ViperEnv("RMQ_PURGEEXCHANGE"),
+			config.ViperEnv("RMQ_PURGEQUEUE"),
+			config.ViperEnv("RMQ_PURGEDATATYPE"),
 			"",
 			string(json),
 		)

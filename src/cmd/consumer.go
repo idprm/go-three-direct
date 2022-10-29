@@ -19,6 +19,8 @@ const (
 	RMQ_RENEWALQUEUE    = "Q_RENEWAL"
 	RMQ_RETRYEXCHANGE   = "E_RETRY"
 	RMQ_RETRYQUEUE      = "Q_RETRY"
+	RMQ_PURGEEXCHANGE   = "E_PURGE"
+	RMQ_PURGEQUEUE      = "Q_PURGE"
 )
 
 var consumerMOCmd = &cobra.Command{
@@ -238,6 +240,64 @@ var consumerRetryCmd = &cobra.Command{
 
 				wg.Add(1)
 				retryProccesor(&wg, d.Body)
+				wg.Wait()
+
+				// Manual consume queue
+				d.Ack(false)
+
+			}
+
+		}()
+
+		fmt.Println("[*] Waiting for data...")
+
+		<-forever
+	},
+}
+
+var consumerPurgeCmd = &cobra.Command{
+	Use:   "consumer-purge",
+	Short: "Consumer Purge Service CLI",
+	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		/**
+		 * SETUP RMQ
+		 */
+		queue.SetupQueue()
+
+		/**
+		 * QUEUE HANDLER
+		 */
+		queue.Rabbit.SetUpChannel(
+			RMQ_EXCHANGETYPE,
+			true,
+			RMQ_PURGEEXCHANGE,
+			true,
+			RMQ_PURGEQUEUE,
+		)
+
+		messagesData := queue.Rabbit.Subscribe(
+			1,
+			false,
+			RMQ_PURGEQUEUE,
+			RMQ_PURGEEXCHANGE,
+			RMQ_PURGEQUEUE,
+		)
+
+		// Initial sync waiting group
+		var wg sync.WaitGroup
+
+		// Loop forever listening incoming data
+		forever := make(chan bool)
+
+		// Set into goroutine this listener
+		go func() {
+
+			// Loop every incoming data
+			for d := range messagesData {
+
+				wg.Add(1)
+				purgeProccesor(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue

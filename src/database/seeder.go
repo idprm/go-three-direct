@@ -19,6 +19,12 @@ var schedules = []model.Schedule{
 		UnLockedAt: time.Now().Add(time.Hour),
 		Status:     true,
 	},
+	{
+		Name:       "PURGE_PUSH",
+		PublishAt:  time.Now(),
+		UnLockedAt: time.Now().Add(time.Hour),
+		Status:     true,
+	},
 }
 
 var contents = []model.Content{

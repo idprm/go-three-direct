@@ -20,6 +20,9 @@ func MessageOriginated(c *fiber.Ctx) error {
 	 * Query Parser
 	 */
 	req := new(dto.MORequest)
+
+	req.IpAddress = c.IP()
+
 	if err := c.QueryParser(req); err != nil {
 		return err
 	}

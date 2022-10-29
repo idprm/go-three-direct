@@ -21,6 +21,8 @@ func DeliveryReport(c *fiber.Ctx) error {
 	 */
 	req := new(dto.DRRequest)
 
+	req.IpAddress = c.IP()
+
 	if err := c.QueryParser(req); err != nil {
 		return err
 	}

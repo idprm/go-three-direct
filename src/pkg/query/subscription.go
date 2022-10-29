@@ -11,16 +11,16 @@ import (
 )
 
 func GetSub(serviceId int, msisdn string) (model.Subscription, error) {
-	var sub model.Subscription
-	sqlStatement := `SELECT service_id, msisdn FROM subscriptions WHERE service_id = ? AND msisdn = ? LIMIT 1`
+	var s model.Subscription
+	sqlStatement := `SELECT id, service_id, msisdn, keyword, adnet, latest_subject, latest_status, amount, renewal_at, purge_at, unsub_at, charge_at, retry_at, success, ip_address, is_retry, is_purge, is_active, created_at, updated_at FROM subscriptions WHERE service_id = ? AND msisdn = ? AND deleted_at IS NULL LIMIT 1`
 
 	db := database.Datasource.SqlDB()
-	err := db.QueryRow(sqlStatement, serviceId, msisdn).Scan(&sub.ServiceID, &sub.Msisdn)
+	err := db.QueryRow(sqlStatement, serviceId, msisdn).Scan(&s.ID, &s.ServiceID, &s.Msisdn, &s.Keyword, &s.Adnet, &s.LatestSubject, &s.LatestStatus, &s.Amount, &s.RenewalAt, &s.PurgeAt, &s.UnsubAt, &s.ChargeAt, &s.RetryAt, &s.Success, &s.IpAddress, &s.IsRetry, &s.IsPurge, &s.IsActive, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
-		return sub, err
+		return s, err
 	}
 
-	return sub, nil
+	return s, nil
 }
 
 func SubUpdateLatest(db *sql.DB, s model.Subscription) error {
