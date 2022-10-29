@@ -33,6 +33,20 @@ while IFS='=' read -r key value; do
 done < "app.env"
 
 while IFS='=' read -r key value; do
+  if [ "$key" = "PURGE_THREAD" ]; then
+    n=$value
+
+    i=1
+    while [ $i -le $n ]
+    do
+      sudo service consumer-purge@"thread_$i" stop
+      sleep 1
+      i=$((i+1))
+    done
+  fi
+done < "app.env"
+
+while IFS='=' read -r key value; do
   if [ "$key" = "MO_THREAD" ]; then
     n=$value
 

@@ -125,3 +125,21 @@ ExecStart=/app/go-yatta-h3i/go-yatta-h3i consumer-dr %i
 [Install]
 WantedBy=multi-user.target
 =======================================================
+
+# Purge | Consumer
+
+sudo nano /etc/systemd/system/consumer-purge@.service
+
+[Unit]
+Description=go-yatta-h3i consumer-purge %i
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+WorkingDirectory=/app/go-yatta-h3i
+ExecStart=/app/go-yatta-h3i/go-yatta-h3i consumer-purge %i
+
+[Install]
+WantedBy=multi-user.target
+=======================================================

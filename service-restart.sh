@@ -17,7 +17,6 @@ while IFS='=' read -r key value; do
   fi
 done < "app.env"
 
-
 while IFS='=' read -r key value; do
   if [ "$key" = "RETRY_THREAD" ]; then
     n=$value
@@ -26,6 +25,20 @@ while IFS='=' read -r key value; do
     while [ $i -le $n ]
     do
       sudo service consumer-retry@"thread_$i" restart
+      sleep 1
+      i=$((i+1))
+    done
+  fi
+done < "app.env"
+
+while IFS='=' read -r key value; do
+  if [ "$key" = "PURGE_THREAD" ]; then
+    n=$value
+
+    i=1
+    while [ $i -le $n ]
+    do
+      sudo service consumer-purge@"thread_$i" restart
       sleep 1
       i=$((i+1))
     done
