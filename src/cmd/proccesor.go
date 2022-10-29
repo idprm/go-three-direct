@@ -101,7 +101,9 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		database.Datasource.DB().Save(&subscription)
 	}
 
-	if subscription.IsActive == true {
+	GetSub, _ := query.GetSub(service.ID, req.MobileNo)
+
+	if GetSub.IsActive == true {
 		/**
 		 * IF SUB IS EXIST AND IS_ACTIVE = true
 		 */

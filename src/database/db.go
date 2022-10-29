@@ -70,9 +70,9 @@ func Connect() {
 	db.AutoMigrate(
 		&model.Service{},
 		&model.Schedule{},
+		&model.Content{},
 		&model.Adnet{},
 		&model.Blacklist{},
-		&model.Content{},
 		&model.Transaction{},
 		&model.Subscription{},
 	)
