@@ -1040,7 +1040,7 @@ func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 				SubmitedID:    submitedId,
 				Keyword:       sub.Keyword,
 				Subject:       smsRenewal,
-				Amount:        service.Charge,
+				Amount:        0,
 				Status:        "FAILED",
 				StatusCode:    statusCode,
 				StatusDetail:  statusText,
