@@ -111,13 +111,13 @@ var publisherRetryCmd = &cobra.Command{
 
 			var schedule model.Schedule
 			resultPublish := database.Datasource.DB().
-				Where("name", "RENEWAL_PUSH").
+				Where("name", "RETRY_PUSH").
 				Where("TIME(publish_at) = TIME(?)", timeNow).
 				Where("status", true).
 				First(&schedule)
 
 			resultLocked := database.Datasource.DB().
-				Where("name", "RENEWAL_PUSH").
+				Where("name", "RETRY_PUSH").
 				Where("TIME(un_locked_at) = TIME(?)", timeNow).
 				Where("status", false).
 				First(&schedule)
