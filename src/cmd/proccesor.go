@@ -182,7 +182,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 						Msisdn:        req.MobileNo,
 						SubmitedID:    submitedId,
 						Keyword:       strings.ToUpper(req.Message),
-						Amount:        0,
+						Amount:        chargeAmount,
 						Status:        labelStatus,
 						StatusCode:    statusCode,
 						StatusDetail:  statusText,
