@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	valReg       = "REG"
 	valRegKeren  = "REG KEREN"
 	valUnreg     = "UNREG KEREN"
 	valWelcome   = "WELCOME"
@@ -84,7 +85,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	var adnet model.Adnet
 	database.Datasource.DB().Where("name", adn).First(&adnet)
 
-	if existSub.RowsAffected == 1 && strings.Contains(strings.ToUpper(req.Message), valRegKeren) == true {
+	if existSub.RowsAffected == 1 && (util.FilterReg(req.Message) == true && util.FilterRegKeren(req.Message) == true) {
 		subHasActive.Keyword = strings.ToUpper(req.Message)
 		subHasActive.Adnet = adnet.Value
 		subHasActive.IpAddress = req.IpAddress
@@ -209,7 +210,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"payload":        util.TrimByteToString(notifUnsub),
 		}).Info()
 
-	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && strings.Contains(strings.ToUpper(req.Message), valRegKeren) == true {
+	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && (util.FilterReg(req.Message) == true && util.FilterRegKeren(req.Message) == true) {
 		subInActive.Keyword = strings.ToUpper(req.Message)
 		subInActive.Adnet = adnet.Value
 		subInActive.IpAddress = req.IpAddress
@@ -504,7 +505,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				Payload:       util.TrimByteToString(purgeMT),
 			},
 		)
-	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && strings.Contains(strings.ToUpper(req.Message), valRegKeren) == true {
+	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && (util.FilterReg(req.Message) == true && util.FilterRegKeren(req.Message) == true) {
 		database.Datasource.DB().Create(
 			&model.Subscription{
 				ServiceID:     service.ID,

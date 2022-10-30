@@ -103,3 +103,11 @@ func KeywordDefine(message string) (bool, string) {
 
 	return checker, subkey
 }
+
+func FilterReg(message string) bool {
+	return strings.Contains(strings.ToUpper(message), "REG")
+}
+
+func FilterRegKeren(message string) bool {
+	return strings.Contains(strings.ToUpper(message), "REG KEREN")
+}
