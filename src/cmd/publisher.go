@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/database"
-	"waki.mobi/go-yatta-h3i/src/pkg/config"
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 	"waki.mobi/go-yatta-h3i/src/pkg/query"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
@@ -27,11 +26,11 @@ var publisherRenewalCmd = &cobra.Command{
 		 * SETUP CHANNEL
 		 */
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			"direct",
 			true,
-			config.ViperEnv("RMQ_RENEWALEXCHANGE"),
+			"E_RENEWAL",
 			true,
-			config.ViperEnv("RMQ_RENEWALQUEUE"),
+			"Q_RENEWAL",
 		)
 
 		/**
@@ -93,11 +92,11 @@ var publisherRetryCmd = &cobra.Command{
 		 * SETUP CHANNEL
 		 */
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			"direct",
 			true,
-			config.ViperEnv("RMQ_RETRYEXCHANGE"),
+			"E_RETRY",
 			true,
-			config.ViperEnv("RMQ_RETRYQUEUE"),
+			"Q_RETRY",
 		)
 
 		/**
@@ -159,11 +158,11 @@ var publisherPurgeCmd = &cobra.Command{
 		 * SETUP CHANNEL
 		 */
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			"direct",
 			true,
-			config.ViperEnv("RMQ_RETRYEXCHANGE"),
+			"E_PURGE",
 			true,
-			config.ViperEnv("RMQ_RETRYQUEUE"),
+			"Q_PURGE",
 		)
 
 		/**
@@ -226,9 +225,9 @@ func populateRenewal() {
 		json, _ := json.Marshal(sub)
 
 		queue.Rabbit.IntegratePublish(
-			config.ViperEnv("RMQ_RENEWALEXCHANGE"),
-			config.ViperEnv("RMQ_RENEWALQUEUE"),
-			config.ViperEnv("RMQ_RENEWALDATATYPE"),
+			"E_RENEWAL",
+			"Q_RENEWAL",
+			"application/json",
 			"",
 			string(json),
 		)
@@ -252,9 +251,9 @@ func populateRetry() {
 		json, _ := json.Marshal(sub)
 
 		queue.Rabbit.IntegratePublish(
-			config.ViperEnv("RMQ_RETRYEXCHANGE"),
-			config.ViperEnv("RMQ_RETRYQUEUE"),
-			config.ViperEnv("RMQ_RETRYDATATYPE"),
+			"E_RETRY",
+			"Q_RETRY",
+			"application/json",
 			"",
 			string(json),
 		)
@@ -276,9 +275,9 @@ func populatePurge() {
 		json, _ := json.Marshal(sub)
 
 		queue.Rabbit.IntegratePublish(
-			config.ViperEnv("RMQ_PURGEEXCHANGE"),
-			config.ViperEnv("RMQ_PURGEQUEUE"),
-			config.ViperEnv("RMQ_PURGEDATATYPE"),
+			"E_RETRY",
+			"Q_RETRY",
+			"application/json",
 			"",
 			string(json),
 		)
