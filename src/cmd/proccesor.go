@@ -471,18 +471,14 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && (index0 == valReg || strings.ToUpper(req.Message) == "REG KEREN") {
 		database.Datasource.DB().Create(
 			&model.Subscription{
-				ServiceID:     service.ID,
-				Msisdn:        req.MobileNo,
-				Keyword:       strings.ToUpper(req.Message),
-				LatestSubject: "INPUT_MSISDN",
-				LatestStatus:  "SUCCESS",
-				Amount:        0,
-				IpAddress:     req.IpAddress,
+				ServiceID: service.ID,
+				Msisdn:    req.MobileNo,
+				Keyword:   strings.ToUpper(req.Message),
+				Amount:    0,
+				IpAddress: req.IpAddress,
+				IsActive:  true,
 			},
 		)
-
-		var subscription model.Subscription
-		database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).First(&subscription)
 
 		// sent mt_firstpush
 		firstpushMt, err := handler.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
@@ -506,10 +502,14 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		statusCode := resXML.Body.Code
 		statusText := resXML.Body.Text
 
+		var subscription model.Subscription
+		database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subscription)
+
 		/**
 		 * if success status code = 0
 		 */
 		if statusCode == 0 {
+
 			// update subscription
 			subscription.LatestSubject = smsFirstpush
 			subscription.LatestStatus = "SUCCESS"
