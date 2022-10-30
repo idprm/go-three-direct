@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	valReg       = "REG"
+	valRegKeren  = "REG KEREN"
 	valUnreg     = "UNREG"
 	valWelcome   = "WELCOME"
 	valFirstpush = "FIRSTPUSH"
@@ -56,11 +56,6 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	// get service by code
 	service, _ := query.GetServiceByCode(req.ShortCode)
 
-	// split message param
-	msg := strings.Split(req.Message, " ")
-	// define array with index
-	index0 := strings.ToUpper(msg[0])
-
 	/**
 	 * Query Content
 	 */
@@ -84,8 +79,14 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	var subInActive model.Subscription
 	nonActiveSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", false).First(&subInActive)
 
-	if existSub.RowsAffected == 1 && (index0 == valReg && strings.ToUpper(req.Message) == "REG KEREN") {
+	_, adn := util.KeywordDefine(strings.ToUpper(req.Message))
+
+	var adnet model.Adnet
+	database.Datasource.DB().Where("name", adn).First(&adnet)
+
+	if existSub.RowsAffected == 1 && strings.Contains(strings.ToUpper(req.Message), valRegKeren) == true {
 		subHasActive.Keyword = strings.ToUpper(req.Message)
+		subHasActive.Adnet = adnet.Value
 		subHasActive.IpAddress = req.IpAddress
 		database.Datasource.DB().Save(&subHasActive)
 
@@ -123,6 +124,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				Msisdn:        req.MobileNo,
 				SubmitedID:    submitedId,
 				Keyword:       strings.ToUpper(req.Message),
+				Adnet:         adnet.Value,
 				Amount:        0,
 				Status:        "",
 				StatusCode:    statusCode,
@@ -133,7 +135,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			},
 		)
 
-	} else if existSub.RowsAffected == 1 && index0 == valUnreg {
+	} else if existSub.RowsAffected == 1 && strings.Contains(strings.ToUpper(req.Message), valUnreg) == true {
 		/**
 		 * IF UNREG
 		 */
@@ -207,8 +209,9 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"payload":        util.TrimByteToString(notifUnsub),
 		}).Info()
 
-	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && (index0 == valReg && strings.ToUpper(req.Message) == "REG KEREN") {
+	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && strings.Contains(strings.ToUpper(req.Message), valRegKeren) == true {
 		subInActive.Keyword = strings.ToUpper(req.Message)
+		subInActive.Adnet = adnet.Value
 		subInActive.IpAddress = req.IpAddress
 		database.Datasource.DB().Save(&subInActive)
 
@@ -245,6 +248,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			// update subscription
 			subInActive.LatestSubject = smsFirstpush
 			subInActive.LatestStatus = "SUCCESS"
+			subInActive.Adnet = adnet.Value
 			subInActive.Amount = service.Charge
 			subInActive.RenewalAt = time.Now().AddDate(0, 0, service.Day)
 			subInActive.ChargeAt = time.Now()
@@ -264,6 +268,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedId,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        service.Charge,
 					Status:        "SUCCESS",
 					StatusCode:    statusCode,
@@ -304,6 +309,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedIdwelcome,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        0,
 					Status:        "",
 					StatusCode:    statusCodewelcome,
@@ -334,6 +340,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		} else if statusCode == 52 {
 			subInActive.LatestSubject = smsFirstpush
 			subInActive.LatestStatus = "FAILED"
+			subInActive.Adnet = adnet.Value
 			subInActive.Amount = 0
 			subInActive.RenewalAt = time.Now().AddDate(0, 0, 1)
 			subInActive.PurgeAt = time.Now().AddDate(0, 0, service.PurgeDay)
@@ -351,6 +358,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedId,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        0,
 					Status:        "FAILED",
 					StatusCode:    statusCode,
@@ -391,6 +399,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedIdInsuff,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        0,
 					Status:        "",
 					StatusCode:    statusCodeInsuft,
@@ -403,6 +412,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		} else {
 			subInActive.LatestSubject = smsFirstpush
 			subInActive.LatestStatus = "FAILED"
+			subInActive.Adnet = adnet.Value
 			subInActive.Amount = 0
 			subInActive.RenewalAt = time.Now().AddDate(0, 0, 1)
 			subInActive.PurgeAt = time.Now().AddDate(0, 0, service.PurgeDay)
@@ -420,6 +430,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedId,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        0,
 					Status:        "FAILED",
 					StatusCode:    statusCode,
@@ -447,7 +458,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"msisdn":         req.MobileNo,
 			"payload":        util.TrimByteToString(postback),
 		}).Info()
-	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && index0 == valUnreg {
+	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && strings.Contains(strings.ToUpper(req.Message), valUnreg) == true {
 
 		/**
 		 * IF UNREG
@@ -483,6 +494,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				Msisdn:        req.MobileNo,
 				SubmitedID:    submitedId,
 				Keyword:       strings.ToUpper(req.Message),
+				Adnet:         adnet.Value,
 				Amount:        0,
 				Status:        "",
 				StatusCode:    statusCode,
@@ -492,12 +504,13 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				Payload:       util.TrimByteToString(purgeMT),
 			},
 		)
-	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && (index0 == valReg && strings.ToUpper(req.Message) == "REG KEREN") {
+	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && strings.Contains(strings.ToUpper(req.Message), valRegKeren) == true {
 		database.Datasource.DB().Create(
 			&model.Subscription{
 				ServiceID:     service.ID,
 				Msisdn:        req.MobileNo,
 				Keyword:       strings.ToUpper(req.Message),
+				Adnet:         adnet.Value,
 				LatestSubject: "INPUT_MSISDN",
 				Amount:        0,
 				IpAddress:     req.IpAddress,
@@ -538,6 +551,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			// update subscription
 			subscription.LatestSubject = smsFirstpush
 			subscription.LatestStatus = "SUCCESS"
+			subscription.Adnet = adnet.Value
 			subscription.Amount = service.Charge
 			subscription.RenewalAt = time.Now().AddDate(0, 0, service.Day)
 			subscription.ChargeAt = time.Now()
@@ -557,6 +571,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedId,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        service.Charge,
 					Status:        "SUCCESS",
 					StatusCode:    statusCode,
@@ -597,6 +612,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedIdwelcome,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        0,
 					Status:        "",
 					StatusCode:    statusCodewelcome,
@@ -627,6 +643,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		} else if statusCode == 52 {
 			subscription.LatestSubject = smsFirstpush
 			subscription.LatestStatus = "FAILED"
+			subscription.Adnet = adnet.Value
 			subscription.Amount = 0
 			subscription.RenewalAt = time.Now().AddDate(0, 0, 1)
 			subInActive.PurgeAt = time.Now().AddDate(0, 0, service.PurgeDay)
@@ -644,6 +661,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedId,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        0,
 					Status:        "FAILED",
 					StatusCode:    statusCode,
@@ -684,6 +702,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedIdInsuff,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        0,
 					Status:        "",
 					StatusCode:    statusCodeInsuft,
@@ -696,6 +715,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		} else {
 			subscription.LatestSubject = smsFirstpush
 			subscription.LatestStatus = "FAILED"
+			subscription.Adnet = adnet.Value
 			subscription.Amount = 0
 			subscription.RenewalAt = time.Time{}
 			subscription.PurgeAt = time.Time{}
@@ -713,6 +733,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Msisdn:        req.MobileNo,
 					SubmitedID:    submitedId,
 					Keyword:       strings.ToUpper(req.Message),
+					Adnet:         adnet.Value,
 					Amount:        0,
 					Status:        "FAILED",
 					StatusCode:    statusCode,
@@ -741,7 +762,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"payload":        util.TrimByteToString(postback),
 		}).Info()
 
-	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && index0 == valUnreg {
+	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && strings.Contains(strings.ToUpper(req.Message), valUnreg) == true {
 
 		// sent mt_purge
 		purgeMT, err := handler.MessageTerminated(service, contPurge, req.MobileNo, transactionId)

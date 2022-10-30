@@ -85,3 +85,21 @@ func DRStatus(name string) string {
 	}
 	return label
 }
+
+func KeywordDefine(message string) (bool, string) {
+	var checker bool
+	var subkey string
+
+	checker = strings.Contains(message, "REG KEREN")
+	if checker == true {
+		msg := strings.Split(message, " ")
+		index := msg[1]
+		subkey = index[5:]
+	}
+
+	if message == "UNREG" {
+		checker = strings.Contains(message, "UNREG")
+	}
+
+	return checker, subkey
+}
