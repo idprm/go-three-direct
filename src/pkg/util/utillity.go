@@ -97,8 +97,8 @@ func KeywordDefine(message string) (bool, string) {
 		subkey = index[5:]
 	}
 
-	if message == "UNREG" {
-		checker = strings.Contains(message, "UNREG")
+	if message == "UNREG KEREN" {
+		checker = strings.Contains(message, "UNREG KEREN")
 	}
 
 	return checker, subkey
