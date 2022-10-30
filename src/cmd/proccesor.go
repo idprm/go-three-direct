@@ -397,6 +397,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				subInActive.LatestStatus = "FAILED"
 				subInActive.Amount = 0
 				subInActive.RenewalAt = time.Now().AddDate(0, 0, 1)
+				subInActive.PurgeAt = time.Now().AddDate(0, 0, service.PurgeDay)
 				subInActive.IpAddress = ""
 				subInActive.IsRetry = true
 				subInActive.IsPurge = false
@@ -723,6 +724,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				subscription.LatestStatus = "FAILED"
 				subscription.Amount = 0
 				subscription.RenewalAt = time.Now().AddDate(0, 0, 1)
+				subInActive.PurgeAt = time.Now().AddDate(0, 0, service.PurgeDay)
 				subscription.IpAddress = ""
 				subscription.IsRetry = true
 				subscription.IsPurge = false
