@@ -135,7 +135,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			},
 		)
 
-	} else if existSub.RowsAffected == 1 && strings.Contains(strings.ToUpper(req.Message), valUnreg) == true {
+	} else if existSub.RowsAffected == 1 && strings.ToUpper(req.Message) == valUnreg {
 		/**
 		 * IF UNREG
 		 */
@@ -458,7 +458,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"msisdn":         req.MobileNo,
 			"payload":        util.TrimByteToString(postback),
 		}).Info()
-	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && strings.Contains(strings.ToUpper(req.Message), valUnreg) == true {
+	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && strings.ToUpper(req.Message) == valUnreg {
 
 		/**
 		 * IF UNREG
@@ -762,7 +762,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"payload":        util.TrimByteToString(postback),
 		}).Info()
 
-	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && strings.Contains(strings.ToUpper(req.Message), valUnreg) == true {
+	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && strings.ToUpper(req.Message) == valUnreg {
 
 		// sent mt_purge
 		purgeMT, err := handler.MessageTerminated(service, contPurge, req.MobileNo, transactionId)
