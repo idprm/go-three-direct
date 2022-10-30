@@ -220,6 +220,7 @@ func populateRenewal() {
 		sub.Msisdn = s.Msisdn
 		sub.ServiceID = s.ServiceID
 		sub.Keyword = s.Keyword
+		sub.PurgeAt = s.PurgeAt
 		sub.IpAddress = s.IpAddress
 
 		json, _ := json.Marshal(sub)
@@ -246,6 +247,7 @@ func populateRetry() {
 		sub.Msisdn = s.Msisdn
 		sub.ServiceID = s.ServiceID
 		sub.Keyword = s.Keyword
+		sub.PurgeAt = s.PurgeAt
 		sub.IpAddress = s.IpAddress
 
 		json, _ := json.Marshal(sub)
@@ -270,6 +272,7 @@ func populatePurge() {
 		sub.Msisdn = s.Msisdn
 		sub.ServiceID = s.ServiceID
 		sub.Keyword = s.Keyword
+		sub.PurgeAt = s.PurgeAt
 		sub.IpAddress = s.IpAddress
 
 		json, _ := json.Marshal(sub)
