@@ -104,10 +104,18 @@ func KeywordDefine(message string) (bool, string) {
 	return checker, subkey
 }
 
-func FilterReg(message string) bool {
-	return strings.Contains(strings.ToUpper(message), "REG")
+func FilterRegKeren(message string) bool {
+	index := strings.Split(message, " ")
+	if index[0] == "REG" && strings.Contains(strings.ToUpper(message), "REG KEREN") == true {
+		return true
+	}
+	return false
 }
 
-func FilterRegKeren(message string) bool {
-	return strings.Contains(strings.ToUpper(message), "REG KEREN")
+func FilterUnregKeren(message string) bool {
+	index := strings.Split(message, " ")
+	if index[0] == "UNREG" && strings.Contains(strings.ToUpper(message), "UNREG KEREN") == true {
+		return true
+	}
+	return false
 }
