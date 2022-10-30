@@ -471,12 +471,13 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && (index0 == valReg || strings.ToUpper(req.Message) == "REG KEREN") {
 		database.Datasource.DB().Create(
 			&model.Subscription{
-				ServiceID: service.ID,
-				Msisdn:    req.MobileNo,
-				Keyword:   strings.ToUpper(req.Message),
-				Amount:    0,
-				IpAddress: req.IpAddress,
-				IsActive:  true,
+				ServiceID:     service.ID,
+				Msisdn:        req.MobileNo,
+				Keyword:       strings.ToUpper(req.Message),
+				LatestSubject: "INPUT_MSISDN",
+				Amount:        0,
+				IpAddress:     req.IpAddress,
+				IsActive:      true,
 			},
 		)
 
@@ -503,7 +504,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		statusText := resXML.Body.Text
 
 		var subscription model.Subscription
-		database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subscription)
+		database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("latest_subject", "INPUT_MSISDN").Where("is_active", true).First(&subscription)
 
 		/**
 		 * if success status code = 0
