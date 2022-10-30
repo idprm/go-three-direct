@@ -84,7 +84,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	var subInActive model.Subscription
 	nonActiveSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", false).First(&subInActive)
 
-	if existSub.RowsAffected == 1 && (index0 == valReg || strings.ToUpper(req.Message) == "REG KEREN") {
+	if existSub.RowsAffected == 1 && (index0 == valReg && strings.ToUpper(req.Message) == "REG KEREN") {
 		subHasActive.Keyword = strings.ToUpper(req.Message)
 		subHasActive.IpAddress = req.IpAddress
 		database.Datasource.DB().Save(&subHasActive)
@@ -492,7 +492,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				Payload:       util.TrimByteToString(purgeMT),
 			},
 		)
-	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && (index0 == valReg || strings.ToUpper(req.Message) == "REG KEREN") {
+	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && (index0 == valReg && strings.ToUpper(req.Message) == "REG KEREN") {
 		database.Datasource.DB().Create(
 			&model.Subscription{
 				ServiceID:     service.ID,
