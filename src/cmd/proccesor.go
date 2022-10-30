@@ -18,7 +18,7 @@ import (
 
 const (
 	valRegKeren  = "REG KEREN"
-	valUnreg     = "UNREG"
+	valUnreg     = "UNREG KEREN"
 	valWelcome   = "WELCOME"
 	valFirstpush = "FIRSTPUSH"
 	valUnsub     = "UNSUB"
