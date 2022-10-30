@@ -600,12 +600,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				"payload":        util.TrimByteToString(notifSub),
 			}).Info()
 
-		}
-
-		/**
-		 * if insuff status code = 52
-		 */
-		if statusCode == 52 {
+		} else if statusCode == 52 {
 			subscription.LatestSubject = smsFirstpush
 			subscription.LatestStatus = "FAILED"
 			subscription.Amount = 0
@@ -672,6 +667,35 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Subject:       smsInsuff,
 					IpAddress:     "",
 					Payload:       util.TrimByteToString(insuffMT),
+				},
+			)
+		} else {
+			subscription.LatestSubject = smsFirstpush
+			subscription.LatestStatus = "FAILED"
+			subscription.Amount = 0
+			subscription.RenewalAt = time.Time{}
+			subscription.PurgeAt = time.Time{}
+			subscription.IpAddress = ""
+			subscription.IsRetry = false
+			subscription.IsPurge = false
+			subscription.IsActive = false
+			database.Datasource.DB().Save(&subscription)
+
+			// Insert to Transaction
+			database.Datasource.DB().Create(
+				&model.Transaction{
+					TransactionID: transactionId,
+					ServiceID:     service.ID,
+					Msisdn:        req.MobileNo,
+					SubmitedID:    submitedId,
+					Keyword:       strings.ToUpper(req.Message),
+					Amount:        0,
+					Status:        "FAILED",
+					StatusCode:    statusCode,
+					StatusDetail:  statusText,
+					Subject:       smsFirstpush,
+					IpAddress:     "",
+					Payload:       util.TrimByteToString(firstpushMt),
 				},
 			)
 		}
