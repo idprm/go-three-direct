@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
 	"waki.mobi/go-yatta-h3i/src/pkg/dto"
+	"waki.mobi/go-yatta-h3i/src/pkg/query"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
@@ -31,15 +32,22 @@ func MessageOriginated(c *fiber.Ctx) error {
 		"request": req,
 	}).Info()
 
-	json, _ := json.Marshal(req)
+	/**
+	 * If MSISDN is blacklist
+	 */
+	count, _ := query.GetCountBlacklist(req.MobileNo)
 
-	queue.Rabbit.IntegratePublish(
-		"E_MO",
-		"Q_MO",
-		"application/json",
-		"",
-		string(json),
-	)
+	if count == 0 {
+		json, _ := json.Marshal(req)
+
+		queue.Rabbit.IntegratePublish(
+			"E_MO",
+			"Q_MO",
+			"application/json",
+			"",
+			string(json),
+		)
+	}
 
 	return c.XML(dto.ResponseXML{
 		Status: "OK",

@@ -5,13 +5,9 @@ import (
 	"waki.mobi/go-yatta-h3i/src/database"
 )
 
-func init() {
+func main() {
 	// Setup database
 	database.Connect()
-}
-
-func main() {
 	// Setup cobra
 	cmd.Execute()
-
 }
