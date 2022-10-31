@@ -1090,6 +1090,21 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 			},
 		)
 
+		// Update last_subject, amount, renewal_at, charge_at, success, is_retry on subscription
+		query.SubUpdateSuccess(database.Datasource.SqlDB(),
+			model.Subscription{
+				LatestSubject: smsRenewal,
+				LatestStatus:  "SUCCESS",
+				Amount:        service.Charge,
+				RenewalAt:     time.Now().AddDate(0, 0, service.Day),
+				ChargeAt:      time.Now(),
+				Success:       1,
+				IsRetry:       false,
+				ServiceID:     sub.ServiceID,
+				Msisdn:        sub.Msisdn,
+			},
+		)
+
 		/**
 		 * Notif Renewal
 		 */
