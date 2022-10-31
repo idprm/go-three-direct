@@ -167,7 +167,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		subHasActive.LatestStatus = "SUCCESS"
 		subHasActive.LatestSubject = smsUnsub
 		subHasActive.UnsubAt = time.Now()
-		subHasActive.PurgeAt = time.Time{}
+		subHasActive.PurgeAt = time.Now()
 		subHasActive.RenewalAt = time.Time{}
 		subHasActive.RetryAt = time.Time{}
 		subHasActive.IsPurge = false
