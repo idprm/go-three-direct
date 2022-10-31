@@ -903,11 +903,11 @@ func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 	 * Query Content wording
 	 */
 	contRenewal, _ := query.GetContent(sub.ServiceID, "RENEWAL")
-	replaceRenewal := strings.NewReplacer("@purge_date", sub.PurgeAt.Format("02-Jan-2006"))
-	messageRenewal := replaceRenewal.Replace(contRenewal.Value)
+	// replaceRenewal := strings.NewReplacer("@purge_date", sub.PurgeAt.Format("02-Jan-2006"))
+	// messageRenewal := replaceRenewal.Replace(contRenewal.Value)
 
 	// sent mt_renewal
-	renewalMt, err := handler.MessageTerminatedRenewal(service, messageRenewal, sub.Msisdn, transactionId)
+	renewalMt, err := handler.MessageTerminatedRenewal(service, contRenewal.Value, sub.Msisdn, transactionId)
 	if err != nil {
 		loggerMt.WithFields(logrus.Fields{
 			"transaction_id": transactionId,
@@ -1035,10 +1035,10 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 	 * Query Content wording
 	 */
 	contRenewal, _ := query.GetContent(sub.ServiceID, "RENEWAL")
-	replaceRenewal := strings.NewReplacer("@purge_date", sub.PurgeAt.Format("02-Jan-2006"))
-	messageRenewal := replaceRenewal.Replace(contRenewal.Value)
+	// replaceRenewal := strings.NewReplacer("@purge_date", sub.PurgeAt.Format("02-Jan-2006"))
+	// messageRenewal := replaceRenewal.Replace(contRenewal.Value)
 
-	retryMt, err := handler.MessageTerminatedRenewal(service, messageRenewal, sub.Msisdn, transactionId)
+	retryMt, err := handler.MessageTerminatedRenewal(service, contRenewal.Value, sub.Msisdn, transactionId)
 	if err != nil {
 		loggerMt.WithFields(logrus.Fields{
 			"transaction_id": transactionId,
