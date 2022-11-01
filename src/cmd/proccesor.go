@@ -414,13 +414,10 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			subInActive.LatestSubject = smsFirstpush
 			subInActive.LatestStatus = "FAILED"
 			subInActive.Adnet = adnet.Value
-			subInActive.Amount = 0
-			subInActive.RenewalAt = time.Now().AddDate(0, 0, 1)
-			subInActive.PurgeAt = time.Now().AddDate(0, 0, service.PurgeDay)
 			subInActive.IpAddress = ""
-			subInActive.IsRetry = true
+			subInActive.IsRetry = false
 			subInActive.IsPurge = false
-			subInActive.IsActive = true
+			subInActive.IsActive = false
 			database.Datasource.DB().Save(&subInActive)
 
 			// Insert to Transaction
