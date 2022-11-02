@@ -2,6 +2,7 @@ sudo service server restart
 
 sudo service publisher-renewal restart
 sudo service publisher-retry restart
+sudo service publisher-purge restart
 
 while IFS='=' read -r key value; do
   if [ "$key" = "RENEWAL_THREAD" ]; then

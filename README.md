@@ -54,6 +54,24 @@ ExecStart=/app/go-yatta-h3i/go-yatta-h3i publisher-retry
 WantedBy=multi-user.target
 =======================================================
 
+# PURGE | Publisher
+
+sudo nano /etc/systemd/system/publisher-purge.service
+
+[Unit]
+Description=go-yatta-h3i publisher-purge
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+WorkingDirectory=/app/go-yatta-h3i
+ExecStart=/app/go-yatta-h3i/go-yatta-h3i publisher-purge
+
+[Install]
+WantedBy=multi-user.target
+=======================================================
+
 # RENEWAL | Consumer
 
 sudo nano /etc/systemd/system/consumer-renewal@.service
