@@ -144,8 +144,8 @@ var publisherRetryCmd = &cobra.Command{
 }
 
 var publisherPurgeCmd = &cobra.Command{
-	Use:   "publisher-retry",
-	Short: "Retry CLI",
+	Use:   "publisher-purge",
+	Short: "Purge CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
