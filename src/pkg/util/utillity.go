@@ -97,15 +97,15 @@ func FilterMessage(message string) string {
 }
 
 func KeywordDefine(message string) string {
-	var subkey string
+	var subkey string = ""
 
-	if strings.Contains(strings.ToUpper(message), "REG KEREN") {
+	if strings.Contains(strings.ToUpper(message), "REG KEREN") == true {
 		msg := strings.Split(message, " ")
 		index := msg[1]
 		subkey = index[5:]
 	}
 
-	if strings.Contains(strings.ToUpper(message), "REG GM") {
+	if strings.Contains(strings.ToUpper(message), "REG GM") == true {
 		msg := strings.Split(message, " ")
 		index := msg[1]
 		subkey = index[2:]
