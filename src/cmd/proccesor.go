@@ -77,12 +77,12 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	var subInActive model.Subscription
 	nonActiveSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", false).First(&subInActive)
 
-	_, adn := util.KeywordDefine(strings.ToUpper(req.Message))
+	adn := util.KeywordDefine(strings.ToUpper(req.Message))
 
 	var adnet model.Adnet
 	database.Datasource.DB().Where("name", adn).First(&adnet)
 
-	if existSub.RowsAffected == 1 && util.FilterReg(req.Message) == true {
+	if existSub.RowsAffected == 1 && util.FilterReg(req.Message) {
 		subHasActive.Keyword = strings.ToUpper(req.Message)
 		subHasActive.Adnet = adnet.Value
 		subHasActive.IpAddress = req.IpAddress
@@ -133,7 +133,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			},
 		)
 
-	} else if existSub.RowsAffected == 1 && util.FilterUnreg(req.Message) == true {
+	} else if existSub.RowsAffected == 1 && util.FilterUnreg(req.Message) {
 		/**
 		 * IF UNREG
 		 */
@@ -207,7 +207,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"payload":        util.TrimByteToString(notifUnsub),
 		}).Info()
 
-	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && util.FilterReg(req.Message) == true {
+	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && util.FilterReg(req.Message) {
 		subInActive.Keyword = strings.ToUpper(req.Message)
 		subInActive.Adnet = adnet.Value
 		subInActive.IpAddress = req.IpAddress
@@ -453,7 +453,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"msisdn":         req.MobileNo,
 			"payload":        util.TrimByteToString(postback),
 		}).Info()
-	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && util.FilterUnreg(req.Message) == true {
+	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && util.FilterUnreg(req.Message) {
 
 		/**
 		 * IF UNREG
@@ -499,7 +499,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				Payload:       util.TrimByteToString(purgeMT),
 			},
 		)
-	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && util.FilterReg(req.Message) == true {
+	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && util.FilterReg(req.Message) {
 		database.Datasource.DB().Create(
 			&model.Subscription{
 				ServiceID:     service.ID,
@@ -757,7 +757,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"payload":        util.TrimByteToString(postback),
 		}).Info()
 
-	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && util.FilterUnreg(req.Message) == true {
+	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && util.FilterUnreg(req.Message) {
 
 		// sent mt_purge
 		purgeMT, err := handler.MessageTerminated(service, contPurge, req.MobileNo, transactionId)
