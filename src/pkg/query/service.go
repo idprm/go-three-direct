@@ -26,3 +26,15 @@ func GetServiceByCode(code string) (model.Service, error) {
 	}
 	return s, nil
 }
+
+func GetServiceByName(name string) (model.Service, error) {
+	// SELECT id, code, name, auth_user, auth_pass, day, charge, purge_day, url_notif_sub, url_notif_unsub, url_notif_renewal, url_postback FROM yatta_db.services WHERE name LIKE '%GM%' AND is_active = true LIMIT 1;
+	var s model.Service
+	sql := "SELECT id, code, name, auth_user, auth_pass, day, charge, purge_day, url_notif_sub, url_notif_unsub, url_notif_renewal, url_postback FROM services WHERE name LIKE '%?%' AND is_active = true LIMIT 1"
+	db := database.Datasource.SqlDB()
+	err := db.QueryRow(sql, name).Scan(&s.ID, &s.Code, &s.Name, &s.AuthUser, &s.AuthPass, &s.Day, &s.Charge, &s.PurgeDay, &s.UrlNotifSub, &s.UrlNotifUnsub, &s.UrlNotifRenewal, &s.UrlPostback)
+	if err != nil {
+		return s, err
+	}
+	return s, nil
+}

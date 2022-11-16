@@ -51,7 +51,7 @@ func TestMO(c *fiber.Ctx) error {
 	}
 
 	// get service by code
-	service, _ := query.GetServiceByCode(req.ShortCode)
+	service, _ := query.GetServiceByName(strings.ToUpper(req.Message))
 
 	// split message param
 	msg := strings.Split(req.Message, " ")

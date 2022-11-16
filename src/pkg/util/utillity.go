@@ -104,17 +104,17 @@ func KeywordDefine(message string) (bool, string) {
 	return checker, subkey
 }
 
-func FilterRegKeren(message string) bool {
+func FilterReg(message string) bool {
 	index := strings.Split(strings.ToUpper(message), " ")
-	if index[0] == "REG" && strings.Contains(strings.ToUpper(message), "REG KEREN") == true {
+	if index[0] == "REG" && (strings.Contains(strings.ToUpper(message), "REG KEREN") == true || strings.Contains(strings.ToUpper(message), "REG GM") == true) {
 		return true
 	}
 	return false
 }
 
-func FilterUnregKeren(message string) bool {
+func FilterUnreg(message string) bool {
 	index := strings.Split(strings.ToUpper(message), " ")
-	if index[0] == "UNREG" && strings.Contains(strings.ToUpper(message), "UNREG KEREN") == true {
+	if index[0] == "UNREG" && (strings.Contains(strings.ToUpper(message), "UNREG KEREN") == true || strings.Contains(strings.ToUpper(message), "UNREG GM") == true) {
 		return true
 	}
 	return false
