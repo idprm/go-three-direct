@@ -360,7 +360,7 @@ func TestMO(c *fiber.Ctx) error {
 		/**
 		 * Postback
 		 */
-		postback, err := handler.Postback(service, req.MobileNo, transactionId)
+		postback, err := handler.Postback(service, req.MobileNo, "", transactionId)
 		if err != nil {
 			loggerPb.WithFields(logrus.Fields{
 				"transaction_id": transactionId,

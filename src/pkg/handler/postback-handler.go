@@ -13,14 +13,14 @@ import (
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
-func Postback(service model.Service, msisdn string, transaction string) ([]byte, error) {
+func Postback(service model.Service, msisdn string, adnet string, transaction string) ([]byte, error) {
 	loggerPb := util.MakeLogger("postback", true)
 
 	urlAPI := service.UrlPostback
 
 	payload := url.Values{}
 	payload.Add("partner", "yatta-h3i")
-	payload.Add("px", "")
+	payload.Add("px", adnet)
 	payload.Add("serv_id", strings.ToLower(service.Name))
 	payload.Add("msisdn", msisdn)
 	payload.Add("trxid", transaction)

@@ -24,6 +24,7 @@ func NotifSub(service model.Service, msisdn string, transaction string) ([]byte,
 
 	payload := url.Values{}
 	payload.Add("msisdn", msisdn)
+	payload.Add("package", "daily")
 	payload.Add("event", "reg")
 
 	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)
@@ -126,6 +127,7 @@ func NotifRenewal(service model.Service, msisdn string, transaction string) ([]b
 
 	payload := url.Values{}
 	payload.Add("msisdn", msisdn)
+	payload.Add("package", "daily")
 	payload.Add("event", "renewal")
 
 	req, err := http.NewRequest("GET", urlAPI+"?"+payload.Encode(), nil)

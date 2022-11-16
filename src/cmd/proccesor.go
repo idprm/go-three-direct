@@ -17,9 +17,6 @@ import (
 )
 
 const (
-	valReg       = "REG"
-	valRegKeren  = "REG KEREN"
-	valUnreg     = "UNREG KEREN"
 	valWelcome   = "WELCOME"
 	valFirstpush = "FIRSTPUSH"
 	valUnsub     = "UNSUB"
@@ -443,7 +440,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		/**
 		 * Postback
 		 */
-		postback, err := handler.Postback(service, req.MobileNo, transactionId)
+		postback, err := handler.Postback(service, req.MobileNo, adnet.Value, transactionId)
 		if err != nil {
 			loggerPb.WithFields(logrus.Fields{
 				"transaction_id": transactionId,
@@ -746,7 +743,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		/**
 		 * Postback
 		 */
-		postback, err := handler.Postback(service, req.MobileNo, transactionId)
+		postback, err := handler.Postback(service, req.MobileNo, adnet.Value, transactionId)
 		if err != nil {
 			loggerPb.WithFields(logrus.Fields{
 				"transaction_id": transactionId,

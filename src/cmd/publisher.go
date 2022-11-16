@@ -278,8 +278,8 @@ func populatePurge() {
 		json, _ := json.Marshal(sub)
 
 		queue.Rabbit.IntegratePublish(
-			"E_RETRY",
-			"Q_RETRY",
+			"E_PURGE",
+			"Q_PURGE",
 			"application/json",
 			"",
 			string(json),
