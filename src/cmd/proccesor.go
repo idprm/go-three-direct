@@ -52,7 +52,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	json.Unmarshal(message, &req)
 
 	// get service by name
-	service, _ := query.GetServiceByName(strings.ToUpper(req.Message))
+	service, _ := query.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
 
 	/**
 	 * Query Content

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/xml"
+	"log"
 	"strings"
 	"time"
 
@@ -50,8 +51,16 @@ func TestMO(c *fiber.Ctx) error {
 		return err
 	}
 
+	log.Println(util.FilterMessage(strings.ToUpper(req.Message)))
+
 	// get service by code
-	service, _ := query.GetServiceByName(strings.ToUpper(req.Message))
+	service, err := query.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println(service.Name)
 
 	// split message param
 	msg := strings.Split(req.Message, " ")
