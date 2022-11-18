@@ -54,53 +54,6 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	// get service by name
 	service, _ := query.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
 
-	contWrongKey, _ := query.GetContent(1, valErroyKey)
-
-	if service.ID == 0 {
-		/**
-		 * IF WRONGKEY
-		 */
-		// sent mt_wrongkey
-		wrongKeywordMt, err := handler.MessageTerminated(service, contWrongKey, req.MobileNo, transactionId)
-		if err != nil {
-			loggerMt.WithFields(logrus.Fields{
-				"transaction_id": transactionId,
-				"msisdn":         req.MobileNo,
-				"error":          err.Error(),
-			}).Error(smsWrongKey)
-		}
-		loggerMt.WithFields(logrus.Fields{
-			"transaction_id": transactionId,
-			"msisdn":         req.MobileNo,
-			"payload":        util.TrimByteToString(wrongKeywordMt),
-		}).Info(smsWrongKey)
-
-		resultWrongkey := util.EscapeChar(wrongKeywordMt)
-		resXML := dto.Response{}
-		xml.Unmarshal([]byte(resultWrongkey), &resXML)
-		submitedId := resXML.Body.SubmitedID
-		statusCode := resXML.Body.Code
-		statusText := resXML.Body.Text
-
-		// Insert to Transaction
-		database.Datasource.DB().Create(
-			&model.Transaction{
-				TransactionID: transactionId,
-				ServiceID:     service.ID,
-				Msisdn:        req.MobileNo,
-				SubmitedID:    submitedId,
-				Keyword:       strings.ToUpper(req.Message),
-				Amount:        0,
-				Status:        "",
-				StatusCode:    statusCode,
-				StatusDetail:  statusText,
-				Subject:       smsWrongKey,
-				IpAddress:     "",
-				Payload:       util.TrimByteToString(wrongKeywordMt),
-			},
-		)
-	}
-
 	/**
 	 * Query Content
 	 */
@@ -115,6 +68,8 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	contUnsub, _ := query.GetContent(service.ID, valUnsub)
 
 	contPurge, _ := query.GetContent(service.ID, valPurge)
+
+	contWrongKey, _ := query.GetContent(service.ID, valErroyKey)
 
 	var subHasActive model.Subscription
 	existSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subHasActive)
