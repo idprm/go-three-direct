@@ -54,6 +54,53 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	// get service by name
 	service, _ := query.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
 
+	contWrongKey, _ := query.GetContent(1, valErroyKey)
+
+	if service.ID == 0 {
+		/**
+		 * IF WRONGKEY
+		 */
+		// sent mt_wrongkey
+		wrongKeywordMt, err := handler.MessageTerminated(service, contWrongKey, req.MobileNo, transactionId)
+		if err != nil {
+			loggerMt.WithFields(logrus.Fields{
+				"transaction_id": transactionId,
+				"msisdn":         req.MobileNo,
+				"error":          err.Error(),
+			}).Error(smsWrongKey)
+		}
+		loggerMt.WithFields(logrus.Fields{
+			"transaction_id": transactionId,
+			"msisdn":         req.MobileNo,
+			"payload":        util.TrimByteToString(wrongKeywordMt),
+		}).Info(smsWrongKey)
+
+		resultWrongkey := util.EscapeChar(wrongKeywordMt)
+		resXML := dto.Response{}
+		xml.Unmarshal([]byte(resultWrongkey), &resXML)
+		submitedId := resXML.Body.SubmitedID
+		statusCode := resXML.Body.Code
+		statusText := resXML.Body.Text
+
+		// Insert to Transaction
+		database.Datasource.DB().Create(
+			&model.Transaction{
+				TransactionID: transactionId,
+				ServiceID:     service.ID,
+				Msisdn:        req.MobileNo,
+				SubmitedID:    submitedId,
+				Keyword:       strings.ToUpper(req.Message),
+				Amount:        0,
+				Status:        "",
+				StatusCode:    statusCode,
+				StatusDetail:  statusText,
+				Subject:       smsWrongKey,
+				IpAddress:     "",
+				Payload:       util.TrimByteToString(wrongKeywordMt),
+			},
+		)
+	}
+
 	/**
 	 * Query Content
 	 */
@@ -69,8 +116,6 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 
 	contPurge, _ := query.GetContent(service.ID, valPurge)
 
-	contWrongKey, _ := query.GetContent(service.ID, valErroyKey)
-
 	var subHasActive model.Subscription
 	existSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subHasActive)
 
@@ -82,15 +127,14 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	var adnet model.Adnet
 	database.Datasource.DB().Where("name", "").First(&adnet)
 
+	/**
+	 * IF SUB IS EXIST AND IS_ACTIVE = true
+	 */
 	if existSub.RowsAffected == 1 && util.FilterReg(req.Message) {
 		subHasActive.Keyword = strings.ToUpper(req.Message)
 		subHasActive.Adnet = adnet.Value
 		subHasActive.IpAddress = req.IpAddress
 		database.Datasource.DB().Save(&subHasActive)
-
-		/**
-		 * IF SUB IS EXIST AND IS_ACTIVE = true
-		 */
 
 		// sent mt_is_active
 		isActiveMT, err := handler.MessageTerminated(service, contIsActive, req.MobileNo, transactionId)
@@ -133,11 +177,10 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			},
 		)
 
-	} else if existSub.RowsAffected == 1 && util.FilterUnreg(req.Message) {
 		/**
 		 * IF UNREG
 		 */
-
+	} else if existSub.RowsAffected == 1 && util.FilterUnreg(req.Message) {
 		// sent mt_unsub
 		unsubMT, err := handler.MessageTerminated(service, contUnsub, req.MobileNo, transactionId)
 		if err != nil {
@@ -207,15 +250,14 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"payload":        util.TrimByteToString(notifUnsub),
 		}).Info()
 
+		/**
+		 * IF REG & REG KEREN
+		 */
 	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && util.FilterReg(req.Message) {
 		subInActive.Keyword = strings.ToUpper(req.Message)
 		subInActive.Adnet = adnet.Value
 		subInActive.IpAddress = req.IpAddress
 		database.Datasource.DB().Save(&subInActive)
-
-		/**
-		 * IF REG & REG KEREN
-		 */
 
 		// sent mt_firstpush
 		firstpushMt, err := handler.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
@@ -453,11 +495,11 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			"msisdn":         req.MobileNo,
 			"payload":        util.TrimByteToString(postback),
 		}).Info()
-	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && util.FilterUnreg(req.Message) {
 
 		/**
 		 * IF UNREG
 		 */
+	} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && util.FilterUnreg(req.Message) {
 
 		// sent mt_purge
 		purgeMT, err := handler.MessageTerminated(service, contPurge, req.MobileNo, transactionId)
@@ -499,6 +541,9 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				Payload:       util.TrimByteToString(purgeMT),
 			},
 		)
+		/**
+		 * REG & NEW INPUT MSISDN
+		 */
 	} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && util.FilterReg(req.Message) {
 		database.Datasource.DB().Create(
 			&model.Subscription{
@@ -536,7 +581,12 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		statusText := resXML.Body.Text
 
 		var subscription model.Subscription
-		database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("latest_subject", "INPUT_MSISDN").Where("is_active", true).First(&subscription)
+		database.Datasource.DB().
+			Where("service_id", service.ID).
+			Where("msisdn", req.MobileNo).
+			Where("latest_subject", "INPUT_MSISDN").
+			Where("is_active", true).
+			First(&subscription)
 
 		/**
 		 * if success status code = 0
