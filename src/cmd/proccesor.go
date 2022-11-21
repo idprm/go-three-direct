@@ -975,9 +975,9 @@ func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 	statusText := resXML.Body.Text
 
 	/**
-	 * if success status code = 0
+	 * if success statusText = Successful
 	 */
-	if statusCode == 0 {
+	if statusText == "Successful" {
 
 		// Insert
 		query.InsertTransact(database.Datasource.SqlDB(),
