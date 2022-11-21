@@ -90,6 +90,17 @@ func FilterMessage(message string) string {
 	i := strings.Index(message, " ")
 	if i > -1 {
 		keyword := message[i+1:]
+
+		if strings.Contains(keyword, "KEREN") {
+			i := len("KEREN")
+			return keyword[:i]
+		}
+
+		if strings.Contains(keyword, "GM") {
+			i := len("GM")
+			return keyword[:i]
+		}
+
 		return keyword
 	} else {
 		return message
