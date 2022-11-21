@@ -60,7 +60,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	// get service by name
 	service, _ := query.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
 
-	if service.Name != "KEREN" && service.Name != "GM" {
+	if (service.Name != "KEREN" && service.Name != "GM") || service.ID == 0 {
 		unknownKeywordMt, err := handler.MessageTerminated(service, contentUnknown, req.MobileNo, transactionId)
 		if err != nil {
 			loggerMt.WithFields(logrus.Fields{
