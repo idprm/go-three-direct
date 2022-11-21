@@ -24,6 +24,7 @@ const (
 	valErroyKey  = "ERROR_KEYWORD"
 	valIsActive  = "IS_ACTIVE"
 	valPurge     = "PURGE"
+	valUnknown   = "UNKNOWN_KEYWORD"
 
 	smsFirstpush = "MT_FIRSTPUSH"
 	smsWelcome   = "MT_WELCOME"
@@ -51,8 +52,54 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 	var req dto.MORequest
 	json.Unmarshal(message, &req)
 
+	/**
+	 * Query content
+	 */
+	contentUnknown, _ := query.GetContent(2, valUnknown)
+
 	// get service by name
 	service, _ := query.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
+
+	if service.Name != "KEREN" && service.Name != "GM" {
+		unknownKeywordMt, err := handler.MessageTerminated(service, contentUnknown, req.MobileNo, transactionId)
+		if err != nil {
+			loggerMt.WithFields(logrus.Fields{
+				"transaction_id": transactionId,
+				"msisdn":         req.MobileNo,
+				"error":          err.Error(),
+			}).Error(smsWrongKey)
+		}
+		loggerMt.WithFields(logrus.Fields{
+			"transaction_id": transactionId,
+			"msisdn":         req.MobileNo,
+			"payload":        util.TrimByteToString(unknownKeywordMt),
+		}).Info(smsWrongKey)
+
+		resultWrongkey := util.EscapeChar(unknownKeywordMt)
+		resXML := dto.Response{}
+		xml.Unmarshal([]byte(resultWrongkey), &resXML)
+		submitedId := resXML.Body.SubmitedID
+		statusCode := resXML.Body.Code
+		statusText := resXML.Body.Text
+
+		// Insert to Transaction
+		database.Datasource.DB().Create(
+			&model.Transaction{
+				TransactionID: transactionId,
+				ServiceID:     service.ID,
+				Msisdn:        req.MobileNo,
+				SubmitedID:    submitedId,
+				Keyword:       strings.ToUpper(req.Message),
+				Amount:        0,
+				Status:        "",
+				StatusCode:    statusCode,
+				StatusDetail:  statusText,
+				Subject:       smsWrongKey,
+				IpAddress:     "",
+				Payload:       util.TrimByteToString(unknownKeywordMt),
+			},
+		)
+	}
 
 	/**
 	 * Query Content
