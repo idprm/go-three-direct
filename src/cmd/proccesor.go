@@ -123,10 +123,10 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 		var subInActive model.Subscription
 		nonActiveSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", false).First(&subInActive)
 
-		// adn := util.KeywordDefine(strings.ToUpper(req.Message))
+		adn := util.KeywordDefine(strings.ToUpper(req.Message))
 
 		var adnet model.Adnet
-		database.Datasource.DB().Where("name", "").First(&adnet)
+		database.Datasource.DB().Where("name", adn).First(&adnet)
 
 		/**
 		 * IF SUB IS EXIST AND IS_ACTIVE = true
