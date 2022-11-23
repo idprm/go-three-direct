@@ -1106,9 +1106,9 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 	statusText := resXML.Body.Text
 
 	/**
-	 * if success status code = 0
+	 * if success statusText = Successful
 	 */
-	if statusCode == 0 {
+	if statusText == "Successful" {
 		query.RemoveTransact(database.Datasource.SqlDB(),
 			model.Transaction{
 				ServiceID: sub.ServiceID,
