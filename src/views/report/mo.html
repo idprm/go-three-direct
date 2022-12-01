@@ -30,6 +30,7 @@
                     <thead>
                         <tr>
                             <th class="border border-slate-300">DATE</th>
+                            <th class="border border-slate-300">KEYWORD</th>
                             <th class="border border-slate-300">ADNET</th>
                             <th class="border border-slate-300">SUM</th>
                         </tr>
@@ -38,6 +39,7 @@
                         {{range .transactions}}
                         <tr>
                             <td class="text-center border border-slate-300">{{ .CreatedAt.Format "2006-01-02" }}</td>
+                            <td class="text-center border border-slate-300">{{ .Keyword }}</td>
                             <td class="text-center border border-slate-300">{{ .Adnet }}</td>
                             <td class="text-right border border-slate-300">{{ .Subject }}</td>
                         </tr>

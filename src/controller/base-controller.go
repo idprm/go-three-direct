@@ -9,7 +9,7 @@ import (
 func ReportMO(c *fiber.Ctx) error {
 
 	var transactions []model.Transaction
-	database.Datasource.DB().Select("count(1) as subject, adnet, status, DATE(created_at) as created_at").
+	database.Datasource.DB().Select("count(1) as subject, keyword, adnet, status, DATE(created_at) as created_at").
 		Where("DATE(created_at) BETWEEN DATE_SUB(NOW(), INTERVAL 30 DAY) AND DATE(NOW())").
 		Where("subject", "MT_FIRSTPUSH").
 		Group("DATE(created_at), adnet").
