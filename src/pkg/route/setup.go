@@ -18,7 +18,16 @@ func Setup(app *fiber.App) {
 	}))
 
 	app.Get("/moh3i", controller.MessageOriginated)
+	app.Get("/camph3i", controller.MessageOriginated)
 	app.Get("/drh3i", controller.DeliveryReport)
 	app.Get("/testmoh3i", controller.TestMO)
 	app.Get("/testdr3i", controller.TestDR)
+
+	/**
+	 * Reports
+	 */
+	report := app.Group("report")
+	report.Get("mo", controller.ReportMO)
+	report.Get("renewal", controller.ReportRenewal)
+	report.Get("firstpush", controller.ReportFirstpush)
 }

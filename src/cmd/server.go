@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
+	"github.com/gofiber/template/html"
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/pkg/config"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
@@ -19,10 +20,14 @@ var serverCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		engine := html.New("./src/views", ".html")
+
 		/**
 		 * Init Fiber
 		 */
-		app := fiber.New()
+		app := fiber.New(fiber.Config{
+			Views: engine,
+		})
 
 		/**
 		 * Access log on browser
