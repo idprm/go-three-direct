@@ -1,3 +1,6 @@
+#restart mysql
+sudo systemctl restart mysql
+
 sudo service server restart
 
 sudo service publisher-renewal restart
