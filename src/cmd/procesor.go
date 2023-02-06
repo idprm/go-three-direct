@@ -509,13 +509,13 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					"transaction_id": transactionId,
 					"msisdn":         req.MobileNo,
 					"error":          err.Error(),
-				}).Error(smsPurge)
+				}).Error(smsUnsub)
 			}
 			loggerMt.WithFields(logrus.Fields{
 				"transaction_id": transactionId,
 				"msisdn":         req.MobileNo,
 				"payload":        util.TrimByteToString(purgeMT),
-			}).Info(smsPurge)
+			}).Info(smsUnsub)
 
 			resultPurge := util.EscapeChar(purgeMT)
 			resXML := dto.Response{}
@@ -537,7 +537,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Status:        "",
 					StatusCode:    statusCode,
 					StatusDetail:  statusText,
-					Subject:       smsPurge,
+					Subject:       smsUnsub,
 					IpAddress:     "",
 					Payload:       util.TrimByteToString(purgeMT),
 				},
@@ -817,13 +817,13 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					"transaction_id": transactionId,
 					"msisdn":         req.MobileNo,
 					"error":          err.Error(),
-				}).Error(smsPurge)
+				}).Error(smsUnsub)
 			}
 			loggerMt.WithFields(logrus.Fields{
 				"transaction_id": transactionId,
 				"msisdn":         req.MobileNo,
 				"payload":        util.TrimByteToString(purgeMT),
-			}).Info(smsPurge)
+			}).Info(smsUnsub)
 
 			resultPurge := util.EscapeChar(purgeMT)
 			resXML := dto.Response{}
@@ -844,7 +844,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 					Status:        "",
 					StatusCode:    statusCode,
 					StatusDetail:  statusText,
-					Subject:       smsPurge,
+					Subject:       smsUnsub,
 					IpAddress:     "",
 					Payload:       util.TrimByteToString(purgeMT),
 				},
@@ -1174,23 +1174,23 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 
 func purgeProccesor(wg *sync.WaitGroup, message []byte) {
 
-	// parsing string json
-	var sub model.Subscription
-	json.Unmarshal(message, &sub)
+	// // parsing string json
+	// var sub model.Subscription
+	// json.Unmarshal(message, &sub)
 
-	// get service by id
-	service, _ := query.GetServiceById(sub.ServiceID)
+	// // get service by id
+	// service, _ := query.GetServiceById(sub.ServiceID)
 
-	var subscription model.Subscription
-	existSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", sub.Msisdn).First(&subscription)
+	// var subscription model.Subscription
+	// existSub := database.Datasource.DB().Where("service_id", service.ID).Where("msisdn", sub.Msisdn).First(&subscription)
 
-	if existSub.RowsAffected == 1 {
-		subscription.LatestSubject = smsPurge
-		subscription.LatestStatus = "SUCCESS"
-		subscription.IsPurge = true
-		subscription.IsActive = false
-		database.Datasource.DB().Save(&subscription)
-	}
+	// if existSub.RowsAffected == 1 {
+	// 	subscription.LatestSubject = smsPurge
+	// 	subscription.LatestStatus = "SUCCESS"
+	// 	subscription.IsPurge = true
+	// 	subscription.IsActive = false
+	// 	database.Datasource.DB().Save(&subscription)
+	// }
 
-	wg.Done()
+	// wg.Done()
 }

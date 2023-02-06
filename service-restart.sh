@@ -2,7 +2,6 @@ sudo service server restart
 
 sudo service publisher-renewal restart
 sudo service publisher-retry restart
-sudo service publisher-purge restart
 
 while IFS='=' read -r key value; do
   if [ "$key" = "RENEWAL_THREAD" ]; then
@@ -26,20 +25,6 @@ while IFS='=' read -r key value; do
     while [ $i -le $n ]
     do
       sudo service consumer-retry@"thread_$i" restart
-      sleep 1
-      i=$((i+1))
-    done
-  fi
-done < "app.env"
-
-while IFS='=' read -r key value; do
-  if [ "$key" = "PURGE_THREAD" ]; then
-    n=$value
-
-    i=1
-    while [ $i -le $n ]
-    do
-      sudo service consumer-purge@"thread_$i" restart
       sleep 1
       i=$((i+1))
     done
