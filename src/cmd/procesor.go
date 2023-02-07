@@ -967,12 +967,26 @@ func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 		"payload":        util.TrimByteToString(renewalMt),
 	}).Info(smsRenewal)
 
-	resultRenewal := util.EscapeChar(renewalMt)
-	resXML := dto.Response{}
-	xml.Unmarshal([]byte(resultRenewal), &resXML)
-	submitedId := resXML.Body.SubmitedID
-	statusCode := resXML.Body.Code
-	statusText := resXML.Body.Text
+	var (
+		submitedId = ""
+		statusCode = 0
+		statusText = ""
+	)
+
+	if !json.Valid(renewalMt) {
+		resultRenewal := util.EscapeChar(renewalMt)
+		resXML := dto.Response{}
+		xml.Unmarshal([]byte(resultRenewal), &resXML)
+		submitedId = resXML.Body.SubmitedID
+		statusCode = resXML.Body.Code
+		statusText = resXML.Body.Text
+	} else {
+		resJSON := dto.Response{}
+		json.Unmarshal(renewalMt, &resJSON)
+		submitedId = resJSON.Body.SubmitedID
+		statusCode = resJSON.Body.Code
+		statusText = resJSON.Body.Text
+	}
 
 	/**
 	 * if success statusText = Successful
@@ -1098,12 +1112,26 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 		"payload":        util.TrimByteToString(retryMt),
 	}).Info(smsFirstpush)
 
-	resultRetry := util.EscapeChar(retryMt)
-	resXML := dto.Response{}
-	xml.Unmarshal([]byte(resultRetry), &resXML)
-	submitedId := resXML.Body.SubmitedID
-	statusCode := resXML.Body.Code
-	statusText := resXML.Body.Text
+	var (
+		submitedId = ""
+		statusCode = 0
+		statusText = ""
+	)
+
+	if !json.Valid(retryMt) {
+		resultRetry := util.EscapeChar(retryMt)
+		resXML := dto.Response{}
+		xml.Unmarshal([]byte(resultRetry), &resXML)
+		submitedId = resXML.Body.SubmitedID
+		statusCode = resXML.Body.Code
+		statusText = resXML.Body.Text
+	} else {
+		resJSON := dto.Response{}
+		json.Unmarshal(retryMt, &resJSON)
+		submitedId = resJSON.Body.SubmitedID
+		statusCode = resJSON.Body.Code
+		statusText = resJSON.Body.Text
+	}
 
 	/**
 	 * if success statusText = Successful
