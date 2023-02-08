@@ -981,11 +981,11 @@ func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 		statusCode = resXML.Body.Code
 		statusText = resXML.Body.Text
 	} else {
-		resJSON := dto.Response{}
+		resJSON := dto.ResponseJSON{}
 		json.Unmarshal(renewalMt, &resJSON)
-		submitedId = resJSON.Body.SubmitedID
-		statusCode = resJSON.Body.Code
-		statusText = resJSON.Body.Text
+		submitedId = resJSON.Responses.ResponseBody.SubmitedID
+		statusCode = resJSON.Responses.ResponseBody.Code
+		statusText = resJSON.Responses.ResponseBody.Text
 	}
 
 	/**
@@ -1126,11 +1126,11 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 		statusCode = resXML.Body.Code
 		statusText = resXML.Body.Text
 	} else {
-		resJSON := dto.Response{}
+		resJSON := dto.ResponseJSON{}
 		json.Unmarshal(retryMt, &resJSON)
-		submitedId = resJSON.Body.SubmitedID
-		statusCode = resJSON.Body.Code
-		statusText = resJSON.Body.Text
+		submitedId = resJSON.Responses.ResponseBody.SubmitedID
+		statusCode = resJSON.Responses.ResponseBody.Code
+		statusText = resJSON.Responses.ResponseBody.Text
 	}
 
 	/**

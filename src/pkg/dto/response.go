@@ -17,3 +17,13 @@ type ResponseXML struct {
 	XMLName xml.Name `xml:"response" json:"response"`
 	Status  string   `xml:"status" json:"status"`
 }
+
+type ResponseJSON struct {
+	Responses struct {
+		ResponseBody struct {
+			Code       int    `json:"CODE"`
+			Text       string `json:"TEXT"`
+			SubmitedID string `json:"SUBMITTED_ID"`
+		} `json:"RESPONSE"`
+	} `json:"RESPONSES"`
+}
