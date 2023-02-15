@@ -117,7 +117,7 @@ func MessageTerminatedUnknown(content model.Content, msisdn string, transaction 
 	return []byte(body), nil
 }
 
-func MessageTerminatedRenewal(service model.Service, message string, msisdn string, transaction string) ([]byte, error) {
+func MessageTerminatedRenewal(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
 
 	urlAPI := config.ViperEnv("URL_MT")
@@ -126,10 +126,10 @@ func MessageTerminatedRenewal(service model.Service, message string, msisdn stri
 	payload.Add("USERNAME", service.AuthUser)
 	payload.Add("PASSWORD", service.AuthPass)
 	payload.Add("REG_DELIVERY", "1")
-	payload.Add("ORIGIN_ADDR", "998791")
+	payload.Add("ORIGIN_ADDR", content.OriginAddr)
 	payload.Add("MOBILENO", msisdn)
 	payload.Add("TYPE", "0")
-	payload.Add("MESSAGE", message)
+	payload.Add("MESSAGE", content.Value)
 	payload.Add("UDH", "0")
 
 	req, err := http.NewRequest("GET", urlAPI+"/push"+"?"+payload.Encode(), nil)
