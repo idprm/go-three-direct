@@ -233,7 +233,6 @@ func populateRenewal() {
 			string(json),
 		)
 	}
-
 }
 
 func populateRetry() {

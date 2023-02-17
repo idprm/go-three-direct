@@ -275,17 +275,31 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				"payload":        util.TrimByteToString(firstpushMt),
 			}).Info(smsFirstpush)
 
-			resultFirstpush := util.EscapeChar(firstpushMt)
-			resXML := dto.Response{}
-			xml.Unmarshal([]byte(resultFirstpush), &resXML)
-			submitedId := resXML.Body.SubmitedID
-			statusCode := resXML.Body.Code
-			statusText := resXML.Body.Text
+			var (
+				submitedId = ""
+				statusCode = 0
+				statusText = ""
+			)
+
+			if !json.Valid(firstpushMt) {
+				resultFirstpush := util.EscapeChar(firstpushMt)
+				resXML := dto.Response{}
+				xml.Unmarshal([]byte(resultFirstpush), &resXML)
+				submitedId = resXML.Body.SubmitedID
+				statusCode = resXML.Body.Code
+				statusText = resXML.Body.Text
+			} else {
+				resJSON := dto.ResponseJSON{}
+				json.Unmarshal(firstpushMt, &resJSON)
+				submitedId = resJSON.Responses.ResponseBody.SubmitedID
+				statusCode = resJSON.Responses.ResponseBody.Code
+				statusText = resJSON.Responses.ResponseBody.Text
+			}
 
 			/**
 			 * if success status code = 0
 			 */
-			if statusCode == 0 {
+			if statusCode == 0 && statusText == "Successful" {
 				// update subscription
 				subInActive.LatestSubject = smsFirstpush
 				subInActive.LatestStatus = "SUCCESS"
@@ -428,9 +442,9 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				resultInsuff := util.EscapeChar(insuffMT)
 				res1XML := dto.Response{}
 				xml.Unmarshal([]byte(resultInsuff), &res1XML)
-				submitedIdInsuff := resXML.Body.SubmitedID
-				statusCodeInsuft := resXML.Body.Code
-				statusTextInsuff := resXML.Body.Text
+				submitedIdInsuff := res1XML.Body.SubmitedID
+				statusCodeInsuft := res1XML.Body.Code
+				statusTextInsuff := res1XML.Body.Text
 
 				// Insert to Transaction
 				database.Datasource.DB().Create(
@@ -574,12 +588,26 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				"payload":        util.TrimByteToString(firstpushMt),
 			}).Info(smsFirstpush)
 
-			resultFirstpush := util.EscapeChar(firstpushMt)
-			resXML := dto.Response{}
-			xml.Unmarshal([]byte(resultFirstpush), &resXML)
-			submitedId := resXML.Body.SubmitedID
-			statusCode := resXML.Body.Code
-			statusText := resXML.Body.Text
+			var (
+				submitedId = ""
+				statusCode = 0
+				statusText = ""
+			)
+
+			if !json.Valid(firstpushMt) {
+				resultFirstpush := util.EscapeChar(firstpushMt)
+				resXML := dto.Response{}
+				xml.Unmarshal([]byte(resultFirstpush), &resXML)
+				submitedId = resXML.Body.SubmitedID
+				statusCode = resXML.Body.Code
+				statusText = resXML.Body.Text
+			} else {
+				resJSON := dto.ResponseJSON{}
+				json.Unmarshal(firstpushMt, &resJSON)
+				submitedId = resJSON.Responses.ResponseBody.SubmitedID
+				statusCode = resJSON.Responses.ResponseBody.Code
+				statusText = resJSON.Responses.ResponseBody.Text
+			}
 
 			var subscription model.Subscription
 			database.Datasource.DB().
@@ -592,8 +620,7 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 			/**
 			 * if success status code = 0
 			 */
-			if statusCode == 0 {
-
+			if statusCode == 0 && statusText == "Successful" {
 				// update subscription
 				subscription.LatestSubject = smsFirstpush
 				subscription.LatestStatus = "SUCCESS"
@@ -736,9 +763,9 @@ func moProccesor(wg *sync.WaitGroup, message []byte) {
 				resultInsuff := util.EscapeChar(insuffMT)
 				res1XML := dto.Response{}
 				xml.Unmarshal([]byte(resultInsuff), &res1XML)
-				submitedIdInsuff := resXML.Body.SubmitedID
-				statusCodeInsuft := resXML.Body.Code
-				statusTextInsuff := resXML.Body.Text
+				submitedIdInsuff := res1XML.Body.SubmitedID
+				statusCodeInsuft := res1XML.Body.Code
+				statusTextInsuff := res1XML.Body.Text
 
 				// Insert to Transaction
 				database.Datasource.DB().Create(
@@ -991,7 +1018,7 @@ func renewalProccesor(wg *sync.WaitGroup, message []byte) {
 	/**
 	 * if success statusText = Successful
 	 */
-	if statusText == "Successful" {
+	if statusCode == 0 && statusText == "Successful" {
 
 		// Insert
 		query.InsertTransact(database.Datasource.SqlDB(),
@@ -1104,13 +1131,13 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 			"transaction_id": transactionId,
 			"msisdn":         sub.Msisdn,
 			"error":          err.Error(),
-		}).Error(smsFirstpush)
+		}).Error(smsRenewal)
 	}
 	loggerMt.WithFields(logrus.Fields{
 		"transaction_id": transactionId,
 		"msisdn":         sub.Msisdn,
 		"payload":        util.TrimByteToString(retryMt),
-	}).Info(smsFirstpush)
+	}).Info(smsRenewal)
 
 	var (
 		submitedId = ""
@@ -1136,7 +1163,7 @@ func retryProccesor(wg *sync.WaitGroup, message []byte) {
 	/**
 	 * if success statusText = Successful
 	 */
-	if statusText == "Successful" {
+	if statusCode == 0 && statusText == "Successful" {
 		query.RemoveTransact(database.Datasource.SqlDB(),
 			model.Transaction{
 				ServiceID: sub.ServiceID,
