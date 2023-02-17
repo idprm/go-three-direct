@@ -11,11 +11,11 @@ func GetDataPopulate(name string) ([]model.Subscription, error) {
 
 	switch name {
 	case "RENEWAL":
-		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null`
+		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC`
 	case "RETRY":
-		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE_SUB(DATE(renewal_at), INTERVAL 1 DAY) = DATE(NOW()) AND is_retry = true AND is_active = true AND deleted_at IS null`
+		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE_SUB(DATE(renewal_at), INTERVAL 1 DAY) = DATE(NOW()) AND is_retry = true AND is_active = true AND deleted_at IS null ORDER BY success DESC`
 	case "PURGE":
-		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(purge_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null`
+		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(purge_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC`
 	}
 
 	rows, err := database.Datasource.SqlDB().Query(SQL)
