@@ -72,6 +72,9 @@ var consumerMOCmd = &cobra.Command{
 				// Manual consume queue
 				d.Ack(false)
 
+				// 0.1 second
+				time.Sleep(100 * time.Millisecond)
+
 			}
 
 		}()
@@ -188,8 +191,8 @@ var consumerRenewalCmd = &cobra.Command{
 				// Manual consume queue
 				d.Ack(false)
 
-				// 0.3 second
-				time.Sleep(300 * time.Millisecond)
+				// 0.12 second
+				time.Sleep(120 * time.Millisecond)
 
 			}
 
@@ -249,9 +252,8 @@ var consumerRetryCmd = &cobra.Command{
 				// Manual consume queue
 				d.Ack(false)
 
-				// 0.3 second
-				time.Sleep(300 * time.Millisecond)
-
+				// 0.12 second
+				time.Sleep(120 * time.Millisecond)
 			}
 
 		}()
@@ -310,7 +312,8 @@ var consumerPurgeCmd = &cobra.Command{
 				// Manual consume queue
 				d.Ack(false)
 
-				time.Sleep(1 * time.Second)
+				// 0.12 second
+				time.Sleep(120 * time.Millisecond)
 			}
 
 		}()
