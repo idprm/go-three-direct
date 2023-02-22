@@ -191,8 +191,8 @@ var consumerRenewalCmd = &cobra.Command{
 				// Manual consume queue
 				d.Ack(false)
 
-				// 0.4 second
-				time.Sleep(400 * time.Millisecond)
+				// 0.45 second
+				time.Sleep(450 * time.Millisecond)
 
 			}
 
