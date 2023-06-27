@@ -25,9 +25,6 @@ func NewTelco(cfg *config.Secret) *Telco {
 
 func (p *Telco) MessageTerminated(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
-	var (
-		respBody []byte
-	)
 
 	urlAPI := p.cfg.Telco.Url
 
@@ -41,14 +38,6 @@ func (p *Telco) MessageTerminated(service model.Service, content model.Content, 
 	payload.Add("MESSAGE", content.Value)
 	payload.Add("UDH", "0")
 
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.DisableKeepAlives = true
-
-	httpClient := &http.Client{
-		Timeout:   10 * time.Second,
-		Transport: t,
-	}
-
 	req, err := http.NewRequest("GET", urlAPI+"/push"+"?"+payload.Encode(), nil)
 	if err != nil {
 		return nil, errors.New(err.Error())
@@ -60,32 +49,36 @@ func (p *Telco) MessageTerminated(service model.Service, content model.Content, 
 		"transaction_id": transaction,
 	}).Info("REQUEST")
 
+	tr := &http.Transport{
+		MaxIdleConns:       10,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+		DisableKeepAlives:  true,
+	}
+
+	client := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: tr,
+	}
+
 	req.Close = true
-	resp, err := httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
 
 	defer resp.Body.Close()
 
-	respBody, err = ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
 
-	req = nil
-	respBody = nil
-	httpClient = nil
-
-	return respBody, nil
+	return []byte(body), nil
 }
 
 func (p *Telco) MessageTerminatedUnknown(content model.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
-
-	var (
-		respBody []byte
-	)
 
 	urlAPI := p.cfg.Telco.Url
 
@@ -99,14 +92,6 @@ func (p *Telco) MessageTerminatedUnknown(content model.Content, msisdn string, t
 	payload.Add("MESSAGE", content.Value)
 	payload.Add("UDH", "0")
 
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.DisableKeepAlives = true
-
-	httpClient := &http.Client{
-		Timeout:   10 * time.Second,
-		Transport: t,
-	}
-
 	req, err := http.NewRequest("GET", urlAPI+"/push"+"?"+payload.Encode(), nil)
 	if err != nil {
 		return nil, errors.New(err.Error())
@@ -118,32 +103,36 @@ func (p *Telco) MessageTerminatedUnknown(content model.Content, msisdn string, t
 		"transaction_id": transaction,
 	}).Info("REQUEST")
 
+	tr := &http.Transport{
+		MaxIdleConns:       10,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+		DisableKeepAlives:  true,
+	}
+
+	client := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: tr,
+	}
+
 	req.Close = true
-	resp, err := httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
 
 	defer resp.Body.Close()
 
-	respBody, err = ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
 
-	req = nil
-	respBody = nil
-	httpClient = nil
-
-	return respBody, nil
+	return []byte(body), nil
 }
 
 func (p *Telco) MessageTerminatedRenewal(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
-
-	var (
-		respBody []byte
-	)
 
 	urlAPI := p.cfg.Telco.Url
 
@@ -157,14 +146,6 @@ func (p *Telco) MessageTerminatedRenewal(service model.Service, content model.Co
 	payload.Add("MESSAGE", content.Value)
 	payload.Add("UDH", "0")
 
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.DisableKeepAlives = true
-
-	httpClient := &http.Client{
-		Timeout:   10 * time.Second,
-		Transport: t,
-	}
-
 	req, err := http.NewRequest("GET", urlAPI+"/push"+"?"+payload.Encode(), nil)
 	if err != nil {
 		return nil, errors.New(err.Error())
@@ -176,22 +157,29 @@ func (p *Telco) MessageTerminatedRenewal(service model.Service, content model.Co
 		"transaction_id": transaction,
 	}).Info("REQUEST")
 
+	tr := &http.Transport{
+		MaxIdleConns:       10,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+		DisableKeepAlives:  true,
+	}
+
+	client := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: tr,
+	}
 	req.Close = true
-	resp, err := httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
 
 	defer resp.Body.Close()
 
-	respBody, err = ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
 
-	req = nil
-	respBody = nil
-	httpClient = nil
-
-	return respBody, nil
+	return []byte(body), nil
 }
