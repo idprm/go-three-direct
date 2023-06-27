@@ -83,8 +83,10 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 	// get service by name
 	service, _ := serviceRepo.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
 
+	provider := handler.NewTelco(p.cfg)
+
 	if (service.Name != "KEREN" && service.Name != "GM") || service.ID == 0 {
-		unknownKeywordMt, err := handler.MessageTerminatedUnknown(contentUnknown, req.MobileNo, transactionId)
+		unknownKeywordMt, err := provider.MessageTerminatedUnknown(contentUnknown, req.MobileNo, transactionId)
 		if err != nil {
 			loggerMt.WithFields(logrus.Fields{
 				"transaction_id": transactionId,
@@ -161,7 +163,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 			p.gdb.Save(&subHasActive)
 
 			// sent mt_is_active
-			isActiveMT, err := handler.MessageTerminated(service, contIsActive, req.MobileNo, transactionId)
+			isActiveMT, err := provider.MessageTerminated(service, contIsActive, req.MobileNo, transactionId)
 			if err != nil {
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
@@ -206,7 +208,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 			 */
 		} else if existSub.RowsAffected == 1 && util.FilterUnreg(req.Message) {
 			// sent mt_unsub
-			unsubMT, err := handler.MessageTerminated(service, contUnsub, req.MobileNo, transactionId)
+			unsubMT, err := provider.MessageTerminated(service, contUnsub, req.MobileNo, transactionId)
 			if err != nil {
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
@@ -284,7 +286,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 			p.gdb.Save(&subInActive)
 
 			// sent mt_firstpush
-			firstpushMt, err := handler.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
+			firstpushMt, err := provider.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
 			if err != nil {
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
@@ -358,7 +360,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 				)
 
 				// sent mt_welcome
-				welcomeMT, err := handler.MessageTerminated(service, contWelcome, req.MobileNo, transactionId)
+				welcomeMT, err := provider.MessageTerminated(service, contWelcome, req.MobileNo, transactionId)
 				if err != nil {
 					loggerMt.WithFields(logrus.Fields{
 						"transaction_id": transactionId,
@@ -448,7 +450,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 				)
 
 				// sent mt_insuff
-				insuffMT, err := handler.MessageTerminated(service, contInsuff, req.MobileNo, transactionId)
+				insuffMT, err := provider.MessageTerminated(service, contInsuff, req.MobileNo, transactionId)
 				if err != nil {
 					loggerMt.WithFields(logrus.Fields{
 						"transaction_id": transactionId,
@@ -540,7 +542,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 		} else if (existSub.RowsAffected == 0 && nonActiveSub.RowsAffected == 1) && util.FilterUnreg(req.Message) {
 
 			// sent mt_purge
-			purgeMT, err := handler.MessageTerminated(service, contPurge, req.MobileNo, transactionId)
+			purgeMT, err := provider.MessageTerminated(service, contPurge, req.MobileNo, transactionId)
 			if err != nil {
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
@@ -597,7 +599,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 			)
 
 			// sent mt_firstpush
-			firstpushMt, err := handler.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
+			firstpushMt, err := provider.MessageTerminated(service, contFirstpush, req.MobileNo, transactionId)
 			if err != nil {
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
@@ -679,7 +681,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 				)
 
 				// sent mt_welcome
-				welcomeMT, err := handler.MessageTerminated(service, contWelcome, req.MobileNo, transactionId)
+				welcomeMT, err := provider.MessageTerminated(service, contWelcome, req.MobileNo, transactionId)
 				if err != nil {
 					loggerMt.WithFields(logrus.Fields{
 						"transaction_id": transactionId,
@@ -769,7 +771,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 				)
 
 				// sent mt_insuff
-				insuffMT, err := handler.MessageTerminated(service, contInsuff, req.MobileNo, transactionId)
+				insuffMT, err := provider.MessageTerminated(service, contInsuff, req.MobileNo, transactionId)
 				if err != nil {
 					loggerMt.WithFields(logrus.Fields{
 						"transaction_id": transactionId,
@@ -861,7 +863,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 		} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && util.FilterUnreg(req.Message) {
 
 			// sent mt_purge
-			purgeMT, err := handler.MessageTerminated(service, contPurge, req.MobileNo, transactionId)
+			purgeMT, err := provider.MessageTerminated(service, contPurge, req.MobileNo, transactionId)
 			if err != nil {
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
@@ -906,7 +908,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 			 */
 
 			// sent mt_wrongkey
-			wrongKeywordMt, err := handler.MessageTerminated(service, contWrongKey, req.MobileNo, transactionId)
+			wrongKeywordMt, err := provider.MessageTerminated(service, contWrongKey, req.MobileNo, transactionId)
 			if err != nil {
 				loggerMt.WithFields(logrus.Fields{
 					"transaction_id": transactionId,
@@ -1007,8 +1009,10 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 	// replaceRenewal := strings.NewReplacer("@purge_date", sub.PurgeAt.Format("02-Jan-2006"))
 	// messageRenewal := replaceRenewal.Replace(contRenewal.Value)
 
+	provider := handler.NewTelco(p.cfg)
+
 	// sent mt_renewal
-	renewalMt, err := handler.MessageTerminatedRenewal(service, contRenewal, sub.Msisdn, transactionId)
+	renewalMt, err := provider.MessageTerminatedRenewal(service, contRenewal, sub.Msisdn, transactionId)
 	if err != nil {
 		loggerMt.WithFields(logrus.Fields{
 			"transaction_id": transactionId,
@@ -1158,7 +1162,9 @@ func (p *Processor) Retry(wg *sync.WaitGroup, message []byte) {
 	// replaceRenewal := strings.NewReplacer("@purge_date", sub.PurgeAt.Format("02-Jan-2006"))
 	// messageRenewal := replaceRenewal.Replace(contRenewal.Value)
 
-	retryMt, err := handler.MessageTerminatedRenewal(service, contRenewal, sub.Msisdn, transactionId)
+	provider := handler.NewTelco(p.cfg)
+
+	retryMt, err := provider.MessageTerminatedRenewal(service, contRenewal, sub.Msisdn, transactionId)
 	if err != nil {
 		loggerMt.WithFields(logrus.Fields{
 			"transaction_id": transactionId,

@@ -8,15 +8,25 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"waki.mobi/go-yatta-h3i/src/pkg/config"
+	"waki.mobi/go-yatta-h3i/src/config"
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
-func MessageTerminated(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
+type Telco struct {
+	cfg *config.Secret
+}
+
+func NewTelco(cfg *config.Secret) *Telco {
+	return &Telco{
+		cfg: cfg,
+	}
+}
+
+func (p *Telco) MessageTerminated(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
 
-	urlAPI := config.ViperEnv("URL_MT")
+	urlAPI := p.cfg.Telco.Url
 
 	payload := url.Values{}
 	payload.Add("USERNAME", service.AuthUser)
@@ -65,10 +75,10 @@ func MessageTerminated(service model.Service, content model.Content, msisdn stri
 	return []byte(body), nil
 }
 
-func MessageTerminatedUnknown(content model.Content, msisdn string, transaction string) ([]byte, error) {
+func (p *Telco) MessageTerminatedUnknown(content model.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
 
-	urlAPI := config.ViperEnv("URL_MT")
+	urlAPI := p.cfg.Telco.Url
 
 	payload := url.Values{}
 	payload.Add("USERNAME", "SD_210906_0180")
@@ -117,10 +127,10 @@ func MessageTerminatedUnknown(content model.Content, msisdn string, transaction 
 	return []byte(body), nil
 }
 
-func MessageTerminatedRenewal(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
+func (p *Telco) MessageTerminatedRenewal(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
 
-	urlAPI := config.ViperEnv("URL_MT")
+	urlAPI := p.cfg.Telco.Url
 
 	payload := url.Values{}
 	payload.Add("USERNAME", service.AuthUser)
