@@ -1,33 +1,38 @@
 package route
 
 import (
+	"database/sql"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"gorm.io/gorm"
 	"waki.mobi/go-yatta-h3i/src/controller"
 )
 
-func Setup(app *fiber.App) {
+func Setup(app *fiber.App, db *sql.DB, gdb *gorm.DB) {
 
 	// Default config
 	app.Use(cors.New())
 
 	// Config for customization
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000, https://h3i-linkit.vercel.app",
+		AllowOrigins: "http://localhost:3000",
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
-	app.Get("/moh3i", controller.MessageOriginated)
-	app.Get("/camph3i", controller.MessageOriginated)
-	app.Get("/drh3i", controller.DeliveryReport)
-	app.Get("/testmoh3i", controller.TestMO)
-	app.Get("/testdr3i", controller.TestDR)
+	handlerMO := controller.NewHandlerMO(db, gdb)
+	handlerDR := controller.NewHandlerDR(db, gdb)
+	handlerIncoming := controller.NewIncomingHandler(db, gdb)
+
+	app.Get("/moh3i", handlerMO.MessageOriginated)
+	app.Get("/camph3i", handlerMO.MessageOriginated)
+	app.Get("/drh3i", handlerDR.DeliveryReport)
 
 	/**
 	 * Reports
 	 */
 	report := app.Group("report")
-	report.Get("mo", controller.ReportMO)
-	report.Get("renewal", controller.ReportRenewal)
-	report.Get("firstpush", controller.ReportFirstpush)
+	report.Get("mo", handlerIncoming.ReportMO)
+	report.Get("renewal", handlerIncoming.ReportRenewal)
+	report.Get("firstpush", handlerIncoming.ReportFirstpush)
 }

@@ -1,16 +1,30 @@
 package controller
 
 import (
+	"database/sql"
 	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"waki.mobi/go-yatta-h3i/src/pkg/dto"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
-func DeliveryReport(c *fiber.Ctx) error {
+type DRHandler struct {
+	db  *sql.DB
+	gdb *gorm.DB
+}
+
+func NewHandlerDR(db *sql.DB, gdb *gorm.DB) *DRHandler {
+	return &DRHandler{
+		db:  db,
+		gdb: gdb,
+	}
+}
+
+func (h *DRHandler) DeliveryReport(c *fiber.Ctx) error {
 	/**
 	 * {"msisdn":"62895330590144","shortcode":"998791","status":"DELIVRD","message":"1601666588632810494","ip":"116.206.10.222"}
 	 */

@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"database/sql"
 	"encoding/json"
 	"time"
 
 	"github.com/spf13/cobra"
-	"waki.mobi/go-yatta-h3i/src/database"
+	"waki.mobi/go-yatta-h3i/src/config"
+	"waki.mobi/go-yatta-h3i/src/database/mysql/db"
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 	"waki.mobi/go-yatta-h3i/src/pkg/query"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
@@ -16,6 +18,20 @@ var publisherRenewalCmd = &cobra.Command{
 	Short: "Renewal CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
 
 		/**
 		 * SETUP RMQ
@@ -43,13 +59,13 @@ var publisherRenewalCmd = &cobra.Command{
 			timeNow := currentTime.Format("15:04")
 
 			var schedule model.Schedule
-			resultPublish := database.Datasource.DB().
+			resultPublish := gdb.
 				Where("name", "RENEWAL_PUSH").
 				Where("TIME(publish_at) = TIME(?)", timeNow).
 				Where("status", true).
 				First(&schedule)
 
-			resultLocked := database.Datasource.DB().
+			resultLocked := gdb.
 				Where("name", "RENEWAL_PUSH").
 				Where("TIME(un_locked_at) = TIME(?)", timeNow).
 				Where("status", false).
@@ -57,17 +73,17 @@ var publisherRenewalCmd = &cobra.Command{
 
 			if resultPublish.RowsAffected == 1 {
 				schedule.Status = false
-				database.Datasource.DB().Save(&schedule)
+				gdb.Save(&schedule)
 
 				go func() {
-					populateRenewal()
+					populateRenewal(sdb)
 				}()
 
 			}
 
 			if resultLocked.RowsAffected == 1 {
 				schedule.Status = true
-				database.Datasource.DB().Save(&schedule)
+				gdb.Save(&schedule)
 			}
 
 			time.Sleep(timeDuration * time.Minute)
@@ -82,6 +98,20 @@ var publisherRetryCmd = &cobra.Command{
 	Short: "Retry CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
 
 		/**
 		 * SETUP RMQ
@@ -109,13 +139,13 @@ var publisherRetryCmd = &cobra.Command{
 			timeNow := currentTime.Format("15:04")
 
 			var schedule model.Schedule
-			resultPublish := database.Datasource.DB().
+			resultPublish := gdb.
 				Where("name", "RETRY_PUSH").
 				Where("TIME(publish_at) = TIME(?)", timeNow).
 				Where("status", true).
 				First(&schedule)
 
-			resultLocked := database.Datasource.DB().
+			resultLocked := gdb.
 				Where("name", "RETRY_PUSH").
 				Where("TIME(un_locked_at) = TIME(?)", timeNow).
 				Where("status", false).
@@ -123,17 +153,17 @@ var publisherRetryCmd = &cobra.Command{
 
 			if resultPublish.RowsAffected == 1 {
 				schedule.Status = false
-				database.Datasource.DB().Save(&schedule)
+				gdb.Save(&schedule)
 
 				go func() {
-					populateRetry()
+					populateRetry(sdb)
 				}()
 
 			}
 
 			if resultLocked.RowsAffected == 1 {
 				schedule.Status = true
-				database.Datasource.DB().Save(&schedule)
+				gdb.Save(&schedule)
 			}
 
 			time.Sleep(timeDuration * time.Minute)
@@ -148,6 +178,19 @@ var publisherPurgeCmd = &cobra.Command{
 	Short: "Purge CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
 
 		/**
 		 * SETUP RMQ
@@ -175,13 +218,13 @@ var publisherPurgeCmd = &cobra.Command{
 			timeNow := currentTime.Format("15:04")
 
 			var schedule model.Schedule
-			resultPublish := database.Datasource.DB().
+			resultPublish := gdb.
 				Where("name", "PURGE_PUSH").
 				Where("TIME(publish_at) = TIME(?)", timeNow).
 				Where("status", true).
 				First(&schedule)
 
-			resultLocked := database.Datasource.DB().
+			resultLocked := gdb.
 				Where("name", "PURGE_PUSH").
 				Where("TIME(un_locked_at) = TIME(?)", timeNow).
 				Where("status", false).
@@ -189,17 +232,17 @@ var publisherPurgeCmd = &cobra.Command{
 
 			if resultPublish.RowsAffected == 1 {
 				schedule.Status = false
-				database.Datasource.DB().Save(&schedule)
+				gdb.Save(&schedule)
 
 				go func() {
-					populatePurge()
+					populatePurge(sdb)
 				}()
 
 			}
 
 			if resultLocked.RowsAffected == 1 {
 				schedule.Status = true
-				database.Datasource.DB().Save(&schedule)
+				gdb.Save(&schedule)
 			}
 
 			time.Sleep(timeDuration * time.Minute)
@@ -209,9 +252,11 @@ var publisherPurgeCmd = &cobra.Command{
 	},
 }
 
-func populateRenewal() {
+func populateRenewal(sdb *sql.DB) {
 
-	subs, _ := query.GetDataPopulate("RENEWAL")
+	populateRepo := query.NewPopulateRepository(sdb)
+
+	subs, _ := populateRepo.GetDataPopulate("RENEWAL")
 
 	for _, s := range subs {
 		var sub model.Subscription
@@ -235,9 +280,11 @@ func populateRenewal() {
 	}
 }
 
-func populateRetry() {
+func populateRetry(sdb *sql.DB) {
 
-	subs, _ := query.GetDataPopulate("RETRY")
+	populateRepo := query.NewPopulateRepository(sdb)
+
+	subs, _ := populateRepo.GetDataPopulate("RETRY")
 
 	for _, s := range subs {
 		var sub model.Subscription
@@ -261,8 +308,10 @@ func populateRetry() {
 	}
 }
 
-func populatePurge() {
-	subs, _ := query.GetDataPopulate("PURGE")
+func populatePurge(sdb *sql.DB) {
+	populateRepo := query.NewPopulateRepository(sdb)
+
+	subs, _ := populateRepo.GetDataPopulate("PURGE")
 
 	for _, s := range subs {
 		var sub model.Subscription

@@ -9,7 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/template/html"
 	"github.com/spf13/cobra"
-	"waki.mobi/go-yatta-h3i/src/pkg/config"
+	"waki.mobi/go-yatta-h3i/src/config"
+	"waki.mobi/go-yatta-h3i/src/database/mysql/db"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 	"waki.mobi/go-yatta-h3i/src/pkg/route"
 )
@@ -19,6 +20,20 @@ var serverCmd = &cobra.Command{
 	Short: "Server CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
 
 		engine := html.New("./src/views", ".html")
 
@@ -43,7 +58,7 @@ var serverCmd = &cobra.Command{
 		/**
 		 * SETUP route
 		 */
-		route.Setup(app)
+		route.Setup(app, sdb, gdb)
 
 		path, err := os.Getwd()
 		if err != nil {
@@ -60,22 +75,22 @@ var serverCmd = &cobra.Command{
 		 * SETUP CHANNEL
 		 */
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			RMQ_EXCHANGETYPE,
 			true,
-			config.ViperEnv("RMQ_MOEXCHANGE"),
+			RMQ_MOEXCHANGE,
 			true,
-			config.ViperEnv("RMQ_MOQUEUE"),
+			RMQ_MOQUEUE,
 		)
 
 		queue.Rabbit.SetUpChannel(
-			config.ViperEnv("RMQ_EXCHANGETYPE"),
+			RMQ_EXCHANGETYPE,
 			true,
-			config.ViperEnv("RMQ_DREXCHANGE"),
+			RMQ_DREXCHANGE,
 			true,
-			config.ViperEnv("RMQ_DRQUEUE"),
+			RMQ_DRQUEUE,
 		)
 
-		log.Fatal(app.Listen(":" + config.ViperEnv("APP_PORT")))
+		log.Fatal(app.Listen(":" + cfg.App.Port))
 
 	},
 }

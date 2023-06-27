@@ -6,16 +6,30 @@ import (
 	"log"
 	"time"
 
-	"waki.mobi/go-yatta-h3i/src/database"
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 )
 
-func GetSub(serviceId int, msisdn string) (model.Subscription, error) {
+type SubscriptionRepository struct {
+	db *sql.DB
+}
+
+type ISubscriptionRepository interface {
+	GetSub(int, string) (model.Subscription, error)
+	SubUpdateLatest(model.Subscription) error
+	SubUpdateSuccess(model.Subscription) error
+	SubUpdateFailed(model.Subscription)
+}
+
+func NewSubscriptionRepository(db *sql.DB) *SubscriptionRepository {
+	return &SubscriptionRepository{
+		db: db,
+	}
+}
+
+func (r *SubscriptionRepository) GetSub(serviceId int, msisdn string) (model.Subscription, error) {
 	var s model.Subscription
 	sqlStatement := `SELECT id, service_id, msisdn, keyword, adnet, latest_subject, latest_status, amount, renewal_at, purge_at, unsub_at, charge_at, retry_at, success, ip_address, is_retry, is_purge, is_active, created_at, updated_at FROM subscriptions WHERE service_id = ? AND msisdn = ? AND deleted_at IS NULL LIMIT 1`
-
-	db := database.Datasource.SqlDB()
-	err := db.QueryRow(sqlStatement, serviceId, msisdn).Scan(&s.ID, &s.ServiceID, &s.Msisdn, &s.Keyword, &s.Adnet, &s.LatestSubject, &s.LatestStatus, &s.Amount, &s.RenewalAt, &s.PurgeAt, &s.UnsubAt, &s.ChargeAt, &s.RetryAt, &s.Success, &s.IpAddress, &s.IsRetry, &s.IsPurge, &s.IsActive, &s.CreatedAt, &s.UpdatedAt)
+	err := r.db.QueryRow(sqlStatement, serviceId, msisdn).Scan(&s.ID, &s.ServiceID, &s.Msisdn, &s.Keyword, &s.Adnet, &s.LatestSubject, &s.LatestStatus, &s.Amount, &s.RenewalAt, &s.PurgeAt, &s.UnsubAt, &s.ChargeAt, &s.RetryAt, &s.Success, &s.IpAddress, &s.IsRetry, &s.IsPurge, &s.IsActive, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
 		return s, err
 	}
@@ -23,12 +37,12 @@ func GetSub(serviceId int, msisdn string) (model.Subscription, error) {
 	return s, nil
 }
 
-func SubUpdateLatest(db *sql.DB, s model.Subscription) error {
+func (r *SubscriptionRepository) SubUpdateLatest(s model.Subscription) error {
 	query := "UPDATE subscriptions SET latest_subject = ?, latest_status = ?, updated_at = NOW() WHERE service_id = ? AND msisdn = ? AND is_active = true"
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		log.Printf("Error %s when preparing SQL statement", err)
 		return err
@@ -49,12 +63,12 @@ func SubUpdateLatest(db *sql.DB, s model.Subscription) error {
 	return nil
 }
 
-func SubUpdateSuccess(db *sql.DB, s model.Subscription) error {
+func (r *SubscriptionRepository) SubUpdateSuccess(s model.Subscription) error {
 	query := "UPDATE subscriptions SET latest_subject = ?, latest_status = ?, amount = amount + ?, renewal_at = ?, charge_at = ?, success = success + ?, is_retry = ?, updated_at = NOW() WHERE service_id = ? AND msisdn = ? AND is_active = true"
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		log.Printf("Error %s when preparing SQL statement", err)
 		return err
@@ -75,12 +89,12 @@ func SubUpdateSuccess(db *sql.DB, s model.Subscription) error {
 	return nil
 }
 
-func SubUpdateFailed(db *sql.DB, s model.Subscription) error {
+func (r *SubscriptionRepository) SubUpdateFailed(s model.Subscription) error {
 	query := "UPDATE subscriptions SET latest_subject = ?, latest_status = ?, renewal_at = ?, is_retry = ?, updated_at = NOW() WHERE service_id = ? AND msisdn = ? AND is_active = true"
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		log.Printf("Error %s when preparing SQL statement", err)
 		return err

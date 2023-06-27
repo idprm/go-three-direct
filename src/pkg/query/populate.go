@@ -1,11 +1,26 @@
 package query
 
 import (
-	"waki.mobi/go-yatta-h3i/src/database"
+	"database/sql"
+
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 )
 
-func GetDataPopulate(name string) ([]model.Subscription, error) {
+type PopulateRepository struct {
+	db *sql.DB
+}
+
+type IPopulateRepository interface {
+	GetDataPopulate(string) ([]model.Subscription, error)
+}
+
+func NewPopulateRepository(db *sql.DB) *PopulateRepository {
+	return &PopulateRepository{
+		db: db,
+	}
+}
+
+func (r *PopulateRepository) GetDataPopulate(name string) ([]model.Subscription, error) {
 
 	var SQL string
 
@@ -18,7 +33,7 @@ func GetDataPopulate(name string) ([]model.Subscription, error) {
 		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(purge_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC`
 	}
 
-	rows, err := database.Datasource.SqlDB().Query(SQL)
+	rows, err := r.db.Query(SQL)
 	if err != nil {
 		return nil, err
 	}

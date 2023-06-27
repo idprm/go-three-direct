@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"waki.mobi/go-yatta-h3i/src/config"
+	"waki.mobi/go-yatta-h3i/src/database/mysql/db"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 )
 
@@ -29,6 +31,21 @@ var consumerMOCmd = &cobra.Command{
 	Short: "Consumer MO Service CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
+
 		/**
 		 * SETUP RMQ
 		 */
@@ -59,6 +76,8 @@ var consumerMOCmd = &cobra.Command{
 		// Loop forever listening incoming data
 		forever := make(chan bool)
 
+		processor := NewProcessor(cfg, sdb, gdb)
+
 		// Set into goroutine this listener
 		go func() {
 
@@ -66,7 +85,7 @@ var consumerMOCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				moProccesor(&wg, d.Body)
+				processor.MO(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -90,6 +109,21 @@ var consumerDRCmd = &cobra.Command{
 	Short: "Consumer DR Service CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
+
 		/**
 		 * SETUP RMQ
 		 */
@@ -120,6 +154,8 @@ var consumerDRCmd = &cobra.Command{
 		// Loop forever listening incoming data
 		forever := make(chan bool)
 
+		processor := NewProcessor(cfg, sdb, gdb)
+
 		// Set into goroutine this listener
 		go func() {
 
@@ -127,7 +163,7 @@ var consumerDRCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				drProccesor(&wg, d.Body)
+				processor.DR(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -148,6 +184,21 @@ var consumerRenewalCmd = &cobra.Command{
 	Short: "Consumer Renewal Service CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
+
 		/**
 		 * SETUP RMQ
 		 */
@@ -178,6 +229,8 @@ var consumerRenewalCmd = &cobra.Command{
 		// Loop forever listening incoming data
 		forever := make(chan bool)
 
+		processor := NewProcessor(cfg, sdb, gdb)
+
 		// Set into goroutine this listener
 		go func() {
 
@@ -185,7 +238,7 @@ var consumerRenewalCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				renewalProccesor(&wg, d.Body)
+				processor.Renewal(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -209,6 +262,21 @@ var consumerRetryCmd = &cobra.Command{
 	Short: "Consumer Retry Service CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
+
 		/**
 		 * SETUP RMQ
 		 */
@@ -239,6 +307,8 @@ var consumerRetryCmd = &cobra.Command{
 		// Loop forever listening incoming data
 		forever := make(chan bool)
 
+		processor := NewProcessor(cfg, sdb, gdb)
+
 		// Set into goroutine this listener
 		go func() {
 
@@ -246,7 +316,7 @@ var consumerRetryCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				retryProccesor(&wg, d.Body)
+				processor.Retry(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue
@@ -269,6 +339,21 @@ var consumerPurgeCmd = &cobra.Command{
 	Short: "Consumer Purge Service CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		/**
+		 * LOAD CONFIG
+		 */
+		cfg, err := config.LoadSecret("secret.yaml")
+		if err != nil {
+			panic(err)
+		}
+
+		/**
+		 * SETUP MYSQL
+		 */
+		sdb := db.InitDB(cfg)
+		gdb := db.InitGormDB(cfg)
+
 		/**
 		 * SETUP RMQ
 		 */
@@ -299,6 +384,8 @@ var consumerPurgeCmd = &cobra.Command{
 		// Loop forever listening incoming data
 		forever := make(chan bool)
 
+		processor := NewProcessor(cfg, sdb, gdb)
+
 		// Set into goroutine this listener
 		go func() {
 
@@ -306,7 +393,7 @@ var consumerPurgeCmd = &cobra.Command{
 			for d := range messagesData {
 
 				wg.Add(1)
-				purgeProccesor(&wg, d.Body)
+				processor.Purge(&wg, d.Body)
 				wg.Wait()
 
 				// Manual consume queue

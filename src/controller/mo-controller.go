@@ -1,17 +1,31 @@
 package controller
 
 import (
+	"database/sql"
 	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"waki.mobi/go-yatta-h3i/src/pkg/dto"
 	"waki.mobi/go-yatta-h3i/src/pkg/query"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
-func MessageOriginated(c *fiber.Ctx) error {
+type MOHandler struct {
+	db  *sql.DB
+	gdb *gorm.DB
+}
+
+func NewHandlerMO(db *sql.DB, gdb *gorm.DB) *MOHandler {
+	return &MOHandler{
+		db:  db,
+		gdb: gdb,
+	}
+}
+
+func (h *MOHandler) MessageOriginated(c *fiber.Ctx) error {
 	/**
 	 * {"mobile_no":"62895330590144","short_code":"99879","message":"REG KEREN","ip":"116.206.10.222"}
 	 */
@@ -32,10 +46,12 @@ func MessageOriginated(c *fiber.Ctx) error {
 		"request": req,
 	}).Info()
 
+	blacklistRepo := query.NewBlacklistRepository(h.db)
+
 	/**
 	 * If MSISDN is blacklist
 	 */
-	count, _ := query.GetCountBlacklist(req.MobileNo)
+	count, _ := blacklistRepo.GetCountBlacklist(req.MobileNo)
 
 	if count == 0 {
 		json, _ := json.Marshal(req)

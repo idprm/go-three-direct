@@ -1,15 +1,29 @@
 package controller
 
 import (
+	"database/sql"
+
 	"github.com/gofiber/fiber/v2"
-	"waki.mobi/go-yatta-h3i/src/database"
+	"gorm.io/gorm"
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 )
 
-func ReportMO(c *fiber.Ctx) error {
+type IncomingHandler struct {
+	db  *sql.DB
+	gdb *gorm.DB
+}
+
+func NewIncomingHandler(db *sql.DB, gdb *gorm.DB) *IncomingHandler {
+	return &IncomingHandler{
+		db:  db,
+		gdb: gdb,
+	}
+}
+
+func (h *IncomingHandler) ReportMO(c *fiber.Ctx) error {
 
 	var transactions []model.Transaction
-	database.Datasource.DB().Select("count(1) as subject, keyword, adnet, status, DATE(created_at) as created_at").
+	h.gdb.Select("count(1) as subject, keyword, adnet, status, DATE(created_at) as created_at").
 		Where("DATE(created_at) BETWEEN DATE_SUB(NOW(), INTERVAL 30 DAY) AND DATE(NOW())").
 		Where("subject", "MT_FIRSTPUSH").
 		Group("DATE(created_at), adnet").
@@ -20,9 +34,9 @@ func ReportMO(c *fiber.Ctx) error {
 	})
 }
 
-func ReportRenewal(c *fiber.Ctx) error {
+func (h *IncomingHandler) ReportRenewal(c *fiber.Ctx) error {
 	var transactions []model.Transaction
-	database.Datasource.DB().Select("DATE(created_at) as created_at, status, count(1) as subject").
+	h.gdb.Select("DATE(created_at) as created_at, status, count(1) as subject").
 		Where("DATE(created_at) BETWEEN DATE_SUB(NOW(), INTERVAL 30 DAY) AND DATE(NOW())").
 		Where("subject", "MT_RENEWAL").
 		Group("DATE(created_at), status").
@@ -33,9 +47,9 @@ func ReportRenewal(c *fiber.Ctx) error {
 	})
 }
 
-func ReportFirstpush(c *fiber.Ctx) error {
+func (h *IncomingHandler) ReportFirstpush(c *fiber.Ctx) error {
 	var transactions []model.Transaction
-	database.Datasource.DB().Select("DATE(created_at) as created_at, status, count(1) as subject").
+	h.gdb.Select("DATE(created_at) as created_at, status, count(1) as subject").
 		Where("DATE(created_at) BETWEEN DATE_SUB(NOW(), INTERVAL 30 DAY) AND DATE(NOW())").
 		Where("subject", "MT_FIRSTPUSH").
 		Group("DATE(created_at), status").

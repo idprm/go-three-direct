@@ -9,12 +9,27 @@ import (
 	"waki.mobi/go-yatta-h3i/src/pkg/model"
 )
 
-func RemoveTransact(db *sql.DB, t model.Transaction) error {
+type TransactionRepository struct {
+	db *sql.DB
+}
+
+type ITransactionRepository interface {
+	RemoveTransact(model.Transaction) error
+	InsertTransact(model.Transaction) error
+}
+
+func NewTransactionRepository(db *sql.DB) *TransactionRepository {
+	return &TransactionRepository{
+		db: db,
+	}
+}
+
+func (r *TransactionRepository) RemoveTransact(t model.Transaction) error {
 	query := "DELETE FROM transactions WHERE service_id = ? AND msisdn = ? AND subject = ? AND status = ? AND DATE(created_at) = DATE(?)"
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		log.Printf("Error %s when preparing SQL statement", err)
 		return err
@@ -35,11 +50,11 @@ func RemoveTransact(db *sql.DB, t model.Transaction) error {
 	return nil
 }
 
-func InsertTransact(db *sql.DB, t model.Transaction) error {
+func (r *TransactionRepository) InsertTransact(t model.Transaction) error {
 	query := "INSERT INTO transactions(transaction_id, service_id, msisdn, submited_id, keyword, adnet, amount, status, status_code, status_detail, subject, ip_address, payload, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		log.Printf("Error %s when preparing SQL statement", err)
 		return err

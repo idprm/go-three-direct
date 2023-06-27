@@ -1,14 +1,27 @@
 package query
 
 import (
-	"waki.mobi/go-yatta-h3i/src/database"
+	"database/sql"
 )
 
-func GetCountBlacklist(msisdn string) (int, error) {
+type BlacklistRepository struct {
+	db *sql.DB
+}
+
+type IBlacklistRepository interface {
+	GetCountBlacklist(string) (int, error)
+}
+
+func NewBlacklistRepository(db *sql.DB) *BlacklistRepository {
+	return &BlacklistRepository{
+		db: db,
+	}
+}
+
+func (r *BlacklistRepository) GetCountBlacklist(msisdn string) (int, error) {
 	var count int
 	sqlStatement := "SELECT COUNT(*) as count FROM blacklists WHERE msisdn = ? LIMIT 1"
-	db := database.Datasource.SqlDB()
-	err := db.QueryRow(sqlStatement, msisdn).Scan(&count)
+	err := r.db.QueryRow(sqlStatement, msisdn).Scan(&count)
 	if err != nil {
 		return count, err
 	}
