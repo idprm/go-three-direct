@@ -28,9 +28,7 @@ type Secret struct {
 		Pass string `yaml:"pass"`
 	} `yaml:"rmq"`
 	Telco struct {
-		Url      string `yaml:"url"`
-		Username string `yaml:"username"`
-		Password string `yaml:"password"`
+		Url string `yaml:"url"`
 	} `yaml:"telco"`
 	Portal struct {
 		Url string `yaml:"url"`

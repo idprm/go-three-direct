@@ -29,6 +29,8 @@ var serverCmd = &cobra.Command{
 			panic(err)
 		}
 
+		log.Println(cfg)
+
 		/**
 		 * SETUP MYSQL
 		 */
