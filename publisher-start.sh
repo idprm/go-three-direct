@@ -1,6 +1,6 @@
 #restart mysql
 sudo systemctl restart mysql
 
-sudo service publisher-renewal start
-sudo service publisher-retry start
+sudo service publisher-renewal restart
+sudo service publisher-retry restart
 
