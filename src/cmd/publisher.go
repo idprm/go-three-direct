@@ -173,85 +173,6 @@ var publisherRetryCmd = &cobra.Command{
 	},
 }
 
-var publisherPurgeCmd = &cobra.Command{
-	Use:   "publisher-purge",
-	Short: "Purge CLI",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		/**
-		 * LOAD CONFIG
-		 */
-		cfg, err := config.LoadSecret("secret.yaml")
-		if err != nil {
-			panic(err)
-		}
-
-		/**
-		 * SETUP MYSQL
-		 */
-		sdb := db.InitDB(cfg)
-		gdb := db.InitGormDB(cfg)
-
-		/**
-		 * SETUP RMQ
-		 */
-		queue.SetupQueue()
-
-		/**
-		 * SETUP CHANNEL
-		 */
-		queue.Rabbit.SetUpChannel(
-			"direct",
-			true,
-			"E_PURGE",
-			true,
-			"Q_PURGE",
-		)
-
-		/**
-		 * Looping schedule
-		 */
-		timeDuration := time.Duration(1)
-
-		for {
-			currentTime := time.Now()
-			timeNow := currentTime.Format("15:04")
-
-			var schedule model.Schedule
-			resultPublish := gdb.
-				Where("name", "PURGE_PUSH").
-				Where("TIME(publish_at) = TIME(?)", timeNow).
-				Where("status", true).
-				First(&schedule)
-
-			resultLocked := gdb.
-				Where("name", "PURGE_PUSH").
-				Where("TIME(un_locked_at) = TIME(?)", timeNow).
-				Where("status", false).
-				First(&schedule)
-
-			if resultPublish.RowsAffected == 1 {
-				schedule.Status = false
-				gdb.Save(&schedule)
-
-				go func() {
-					populatePurge(sdb)
-				}()
-
-			}
-
-			if resultLocked.RowsAffected == 1 {
-				schedule.Status = true
-				gdb.Save(&schedule)
-			}
-
-			time.Sleep(timeDuration * time.Minute)
-
-		}
-
-	},
-}
-
 func populateRenewal(sdb *sql.DB) {
 
 	populateRepo := query.NewPopulateRepository(sdb)
@@ -277,6 +198,7 @@ func populateRenewal(sdb *sql.DB) {
 			"",
 			string(json),
 		)
+		time.Sleep(100 * time.Microsecond)
 	}
 }
 
@@ -305,32 +227,7 @@ func populateRetry(sdb *sql.DB) {
 			"",
 			string(json),
 		)
-	}
-}
 
-func populatePurge(sdb *sql.DB) {
-	populateRepo := query.NewPopulateRepository(sdb)
-
-	subs, _ := populateRepo.GetDataPopulate("PURGE")
-
-	for _, s := range subs {
-		var sub model.Subscription
-
-		sub.ID = s.ID
-		sub.Msisdn = s.Msisdn
-		sub.ServiceID = s.ServiceID
-		sub.Keyword = s.Keyword
-		sub.PurgeAt = s.PurgeAt
-		sub.IpAddress = s.IpAddress
-
-		json, _ := json.Marshal(sub)
-
-		queue.Rabbit.IntegratePublish(
-			"E_PURGE",
-			"Q_PURGE",
-			"application/json",
-			"",
-			string(json),
-		)
+		time.Sleep(100 * time.Microsecond)
 	}
 }
