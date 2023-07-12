@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/config"
-	"waki.mobi/go-yatta-h3i/src/database/mysql/db"
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/datasource/mysql/db"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 	"waki.mobi/go-yatta-h3i/src/pkg/query"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 )
@@ -58,7 +58,7 @@ var publisherRenewalCmd = &cobra.Command{
 			currentTime := time.Now()
 			timeNow := currentTime.Format("15:04")
 
-			var schedule model.Schedule
+			var schedule entity.Schedule
 			resultPublish := gdb.
 				Where("name", "RENEWAL_PUSH").
 				Where("TIME(publish_at) = TIME(?)", timeNow).
@@ -138,7 +138,7 @@ var publisherRetryCmd = &cobra.Command{
 			currentTime := time.Now()
 			timeNow := currentTime.Format("15:04")
 
-			var schedule model.Schedule
+			var schedule entity.Schedule
 			resultPublish := gdb.
 				Where("name", "RETRY_PUSH").
 				Where("TIME(publish_at) = TIME(?)", timeNow).
@@ -180,7 +180,7 @@ func populateRenewal(sdb *sql.DB) {
 	subs, _ := populateRepo.GetDataPopulate("RENEWAL")
 
 	for _, s := range subs {
-		var sub model.Subscription
+		var sub entity.Subscription
 
 		sub.ID = s.ID
 		sub.Msisdn = s.Msisdn
@@ -188,6 +188,7 @@ func populateRenewal(sdb *sql.DB) {
 		sub.Keyword = s.Keyword
 		sub.PurgeAt = s.PurgeAt
 		sub.IpAddress = s.IpAddress
+		sub.CreatedAt = s.CreatedAt
 
 		json, _ := json.Marshal(sub)
 
@@ -209,7 +210,7 @@ func populateRetry(sdb *sql.DB) {
 	subs, _ := populateRepo.GetDataPopulate("RETRY")
 
 	for _, s := range subs {
-		var sub model.Subscription
+		var sub entity.Subscription
 
 		sub.ID = s.ID
 		sub.Msisdn = s.Msisdn
@@ -217,6 +218,7 @@ func populateRetry(sdb *sql.DB) {
 		sub.Keyword = s.Keyword
 		sub.PurgeAt = s.PurgeAt
 		sub.IpAddress = s.IpAddress
+		sub.CreatedAt = s.CreatedAt
 
 		json, _ := json.Marshal(sub)
 

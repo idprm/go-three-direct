@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 )
 
 type TransactionRepository struct {
@@ -14,8 +14,8 @@ type TransactionRepository struct {
 }
 
 type ITransactionRepository interface {
-	RemoveTransact(model.Transaction) error
-	InsertTransact(model.Transaction) error
+	RemoveTransact(entity.Transaction) error
+	InsertTransact(entity.Transaction) error
 }
 
 func NewTransactionRepository(db *sql.DB) *TransactionRepository {
@@ -24,7 +24,7 @@ func NewTransactionRepository(db *sql.DB) *TransactionRepository {
 	}
 }
 
-func (r *TransactionRepository) RemoveTransact(t model.Transaction) error {
+func (r *TransactionRepository) RemoveTransact(t entity.Transaction) error {
 	query := "DELETE FROM transactions WHERE service_id = ? AND msisdn = ? AND subject = ? AND status = ? AND DATE(created_at) = DATE(?)"
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
@@ -50,7 +50,7 @@ func (r *TransactionRepository) RemoveTransact(t model.Transaction) error {
 	return nil
 }
 
-func (r *TransactionRepository) InsertTransact(t model.Transaction) error {
+func (r *TransactionRepository) InsertTransact(t entity.Transaction) error {
 	query := "INSERT INTO transactions(transaction_id, service_id, msisdn, submited_id, keyword, adnet, amount, status, status_code, status_detail, subject, ip_address, payload, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()

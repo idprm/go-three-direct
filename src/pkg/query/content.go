@@ -3,7 +3,7 @@ package query
 import (
 	"database/sql"
 
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 )
 
 type ContentRepository struct {
@@ -11,7 +11,7 @@ type ContentRepository struct {
 }
 
 type IContentRepository interface {
-	GetContent(int, string) (model.Content, error)
+	GetContent(int, string) (entity.Content, error)
 }
 
 func NewContentRepository(db *sql.DB) *ContentRepository {
@@ -20,8 +20,8 @@ func NewContentRepository(db *sql.DB) *ContentRepository {
 	}
 }
 
-func (r *ContentRepository) GetContent(serviceId int, name string) (model.Content, error) {
-	var content model.Content
+func (r *ContentRepository) GetContent(serviceId int, name string) (entity.Content, error) {
+	var content entity.Content
 	sqlStatement := "SELECT value, origin_addr FROM contents WHERE service_id = ? AND name = ? LIMIT 1"
 	err := r.db.QueryRow(sqlStatement, serviceId, name).Scan(&content.Value, &content.OriginAddr)
 	if err != nil {

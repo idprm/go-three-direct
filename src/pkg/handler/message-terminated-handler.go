@@ -9,7 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"waki.mobi/go-yatta-h3i/src/config"
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
@@ -23,7 +23,7 @@ func NewTelco(cfg *config.Secret) *Telco {
 	}
 }
 
-func (p *Telco) MessageTerminated(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
+func (p *Telco) MessageTerminated(service entity.Service, content entity.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
 
 	urlAPI := p.cfg.Telco.Url
@@ -77,7 +77,7 @@ func (p *Telco) MessageTerminated(service model.Service, content model.Content, 
 	return []byte(body), nil
 }
 
-func (p *Telco) MessageTerminatedUnknown(content model.Content, msisdn string, transaction string) ([]byte, error) {
+func (p *Telco) MessageTerminatedUnknown(content entity.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
 
 	urlAPI := p.cfg.Telco.Url
@@ -131,7 +131,7 @@ func (p *Telco) MessageTerminatedUnknown(content model.Content, msisdn string, t
 	return []byte(body), nil
 }
 
-func (p *Telco) MessageTerminatedRenewal(service model.Service, content model.Content, msisdn string, transaction string) ([]byte, error) {
+func (p *Telco) MessageTerminatedRenewal(service entity.Service, content entity.Content, msisdn string, transaction string) ([]byte, error) {
 	loggerMT := util.MakeLogger("mt", true)
 
 	urlAPI := p.cfg.Telco.Url

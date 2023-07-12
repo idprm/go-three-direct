@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
-func Postback(service model.Service, msisdn string, adnet string, transaction string) ([]byte, error) {
+func Postback(service entity.Service, msisdn string, adnet string, transaction string) ([]byte, error) {
 	loggerPb := util.MakeLogger("postback", true)
 
 	urlAPI := service.UrlPostback

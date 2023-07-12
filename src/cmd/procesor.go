@@ -11,9 +11,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"waki.mobi/go-yatta-h3i/src/config"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 	"waki.mobi/go-yatta-h3i/src/pkg/dto"
 	"waki.mobi/go-yatta-h3i/src/pkg/handler"
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
 	"waki.mobi/go-yatta-h3i/src/pkg/query"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
@@ -109,7 +109,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 		// Insert to Transaction
 		p.gdb.Create(
-			&model.Transaction{
+			&entity.Transaction{
 				TransactionID: transactionId,
 				ServiceID:     service.ID,
 				Msisdn:        req.MobileNo,
@@ -142,15 +142,15 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 		contWrongKey, _ := contentRepo.GetContent(service.ID, valErroyKey)
 
-		var subHasActive model.Subscription
+		var subHasActive entity.Subscription
 		existSub := p.gdb.Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", true).First(&subHasActive)
 
-		var subInActive model.Subscription
+		var subInActive entity.Subscription
 		nonActiveSub := p.gdb.Where("service_id", service.ID).Where("msisdn", req.MobileNo).Where("is_active", false).First(&subInActive)
 
 		adn := util.KeywordDefine(strings.ToUpper(req.Message))
 
-		var adnet model.Adnet
+		var adnet entity.Adnet
 		p.gdb.Where("name", adn).First(&adnet)
 
 		/**
@@ -186,7 +186,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 			// Insert to Transaction
 			p.gdb.Create(
-				&model.Transaction{
+				&entity.Transaction{
 					TransactionID: transactionId,
 					ServiceID:     service.ID,
 					Msisdn:        req.MobileNo,
@@ -243,7 +243,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 			// Insert to Transaction
 			p.gdb.Create(
-				&model.Transaction{
+				&entity.Transaction{
 					TransactionID: transactionId,
 					ServiceID:     service.ID,
 					Msisdn:        req.MobileNo,
@@ -342,7 +342,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// insert transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -383,7 +383,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// Insert to Transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -432,7 +432,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// Insert to Transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -473,7 +473,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// Insert to Transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -501,7 +501,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// Insert to Transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -565,7 +565,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 			// Insert to Transaction
 			p.gdb.Create(
-				&model.Transaction{
+				&entity.Transaction{
 					TransactionID: transactionId,
 					ServiceID:     service.ID,
 					Msisdn:        req.MobileNo,
@@ -586,7 +586,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 			 */
 		} else if (existSub.RowsAffected == 0 || nonActiveSub.RowsAffected == 0) && util.FilterReg(req.Message) {
 			p.gdb.Create(
-				&model.Subscription{
+				&entity.Subscription{
 					ServiceID:     service.ID,
 					Msisdn:        req.MobileNo,
 					Keyword:       strings.ToUpper(req.Message),
@@ -634,7 +634,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 				statusText = resJSON.Responses.ResponseBody.Text
 			}
 
-			var subscription model.Subscription
+			var subscription entity.Subscription
 			p.gdb.
 				Where("service_id", service.ID).
 				Where("msisdn", req.MobileNo).
@@ -663,7 +663,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// insert transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -704,7 +704,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// Insert to Transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -753,7 +753,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// Insert to Transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -794,7 +794,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// Insert to Transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -825,7 +825,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 				// Insert to Transaction
 				p.gdb.Create(
-					&model.Transaction{
+					&entity.Transaction{
 						TransactionID: transactionId,
 						ServiceID:     service.ID,
 						Msisdn:        req.MobileNo,
@@ -886,7 +886,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 			// Insert to Transaction
 			p.gdb.Create(
-				&model.Transaction{
+				&entity.Transaction{
 					TransactionID: transactionId,
 					ServiceID:     service.ID,
 					Msisdn:        req.MobileNo,
@@ -931,7 +931,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 			// Insert to Transaction
 			p.gdb.Create(
-				&model.Transaction{
+				&entity.Transaction{
 					TransactionID: transactionId,
 					ServiceID:     service.ID,
 					Msisdn:        req.MobileNo,
@@ -962,7 +962,7 @@ func (p *Processor) DR(wg *sync.WaitGroup, message []byte) {
 	var req dto.DRRequest
 	json.Unmarshal(message, &req)
 
-	var transaction model.Transaction
+	var transaction entity.Transaction
 	existTrans := p.gdb.Where("msisdn", req.Msisdn).Where("submited_id", req.Message).First(&transaction)
 
 	if existTrans.RowsAffected == 1 {
@@ -996,7 +996,7 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 	transactionId := util.GenerateTransactionId()
 
 	// parsing string json
-	var sub model.Subscription
+	var sub entity.Subscription
 	json.Unmarshal(message, &sub)
 
 	// get service by id
@@ -1054,7 +1054,7 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 
 		// Insert
 		transactionRepo.InsertTransact(
-			model.Transaction{
+			entity.Transaction{
 				TransactionID: transactionId,
 				ServiceID:     sub.ServiceID,
 				Msisdn:        sub.Msisdn,
@@ -1072,7 +1072,7 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 
 		// Update last_subject, amount, renewal_at, charge_at, success, is_retry on subscription
 		subscriptionRepo.SubUpdateSuccess(
-			model.Subscription{
+			entity.Subscription{
 				LatestSubject: smsRenewal,
 				LatestStatus:  "SUCCESS",
 				Amount:        service.Charge,
@@ -1105,7 +1105,7 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 	} else {
 
 		transactionRepo.InsertTransact(
-			model.Transaction{
+			entity.Transaction{
 				TransactionID: transactionId,
 				ServiceID:     sub.ServiceID,
 				Msisdn:        sub.Msisdn,
@@ -1123,7 +1123,7 @@ func (p *Processor) Renewal(wg *sync.WaitGroup, message []byte) {
 
 		// Update last_subject, amount, retry_at, is_retry on subscription
 		subscriptionRepo.SubUpdateFailed(
-			model.Subscription{
+			entity.Subscription{
 				LatestSubject: smsRenewal,
 				LatestStatus:  "FAILED",
 				RenewalAt:     time.Now().AddDate(0, 0, 1),
@@ -1149,34 +1149,37 @@ func (p *Processor) Retry(wg *sync.WaitGroup, message []byte) {
 	transactionId := util.GenerateTransactionId()
 
 	// parsing string json
-	var sub model.Subscription
+	var sub entity.Subscription
 	json.Unmarshal(message, &sub)
 
 	// get service by id
 	service, _ := serviceRepo.GetServiceById(sub.ServiceID)
 
+	var labelStatus string
+	if sub.IsCreatedAtToday() {
+		labelStatus = smsFirstpush
+	} else {
+		labelStatus = smsRenewal
+	}
+
 	/**
 	 * Query Content wording
 	 */
-	contRenewal, _ := contentRepo.GetContent(sub.ServiceID, "RENEWAL")
-	// replaceRenewal := strings.NewReplacer("@purge_date", sub.PurgeAt.Format("02-Jan-2006"))
-	// messageRenewal := replaceRenewal.Replace(contRenewal.Value)
-
+	content, _ := contentRepo.GetContent(sub.ServiceID, labelStatus)
 	provider := handler.NewTelco(p.cfg)
-
-	retryMt, err := provider.MessageTerminatedRenewal(service, contRenewal, sub.Msisdn, transactionId)
+	retryMt, err := provider.MessageTerminatedRenewal(service, content, sub.Msisdn, transactionId)
 	if err != nil {
 		loggerMt.WithFields(logrus.Fields{
 			"transaction_id": transactionId,
 			"msisdn":         sub.Msisdn,
 			"error":          err.Error(),
-		}).Error(smsRenewal)
+		}).Error(labelStatus)
 	}
 	loggerMt.WithFields(logrus.Fields{
 		"transaction_id": transactionId,
 		"msisdn":         sub.Msisdn,
 		"payload":        util.TrimByteToString(retryMt),
-	}).Info(smsRenewal)
+	}).Info(labelStatus)
 
 	var (
 		submitedId = ""
@@ -1204,23 +1207,23 @@ func (p *Processor) Retry(wg *sync.WaitGroup, message []byte) {
 	 */
 	if statusCode == 0 && statusText == "Successful" {
 		transactionRepo.RemoveTransact(
-			model.Transaction{
+			entity.Transaction{
 				ServiceID: sub.ServiceID,
 				Msisdn:    sub.Msisdn,
-				Subject:   smsRenewal,
+				Subject:   labelStatus,
 				Status:    "SUCCESS",
 			},
 		)
 
 		// Insert new record if charging renewal success
 		transactionRepo.InsertTransact(
-			model.Transaction{
+			entity.Transaction{
 				TransactionID: transactionId,
 				ServiceID:     sub.ServiceID,
 				Msisdn:        sub.Msisdn,
 				SubmitedID:    submitedId,
 				Keyword:       sub.Keyword,
-				Subject:       smsRenewal,
+				Subject:       labelStatus,
 				Amount:        service.Charge,
 				Status:        "SUCCESS",
 				StatusCode:    statusCode,
@@ -1232,8 +1235,8 @@ func (p *Processor) Retry(wg *sync.WaitGroup, message []byte) {
 
 		// Update last_subject, amount, renewal_at, charge_at, success, is_retry on subscription
 		subscriptionRepo.SubUpdateSuccess(
-			model.Subscription{
-				LatestSubject: smsRenewal,
+			entity.Subscription{
+				LatestSubject: labelStatus,
 				LatestStatus:  "SUCCESS",
 				Amount:        service.Charge,
 				RenewalAt:     time.Now().AddDate(0, 0, service.Day),
@@ -1267,24 +1270,6 @@ func (p *Processor) Retry(wg *sync.WaitGroup, message []byte) {
 }
 
 func (p *Processor) Purge(wg *sync.WaitGroup, message []byte) {
-
-	// // parsing string json
-	// var sub model.Subscription
-	// json.Unmarshal(message, &sub)
-
-	// // get service by id
-	// service, _ := query.GetServiceById(sub.ServiceID)
-
-	// var subscription model.Subscription
-	// existSub := p.gdb.Where("service_id", service.ID).Where("msisdn", sub.Msisdn).First(&subscription)
-
-	// if existSub.RowsAffected == 1 {
-	// 	subscription.LatestSubject = smsPurge
-	// 	subscription.LatestStatus = "SUCCESS"
-	// 	subscription.IsPurge = true
-	// 	subscription.IsActive = false
-	// 	p.gdb.Save(&subscription)
-	// }
 
 	wg.Done()
 }

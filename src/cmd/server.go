@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/template/html"
 	"github.com/spf13/cobra"
 	"waki.mobi/go-yatta-h3i/src/config"
-	"waki.mobi/go-yatta-h3i/src/database/mysql/db"
+	"waki.mobi/go-yatta-h3i/src/datasource/mysql/db"
 	"waki.mobi/go-yatta-h3i/src/pkg/queue"
 	"waki.mobi/go-yatta-h3i/src/pkg/route"
 )

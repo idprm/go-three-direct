@@ -3,7 +3,7 @@ package query
 import (
 	"database/sql"
 
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 )
 
 type PopulateRepository struct {
@@ -11,7 +11,7 @@ type PopulateRepository struct {
 }
 
 type IPopulateRepository interface {
-	GetDataPopulate(string) ([]model.Subscription, error)
+	GetDataPopulate(string) ([]entity.Subscription, error)
 }
 
 func NewPopulateRepository(db *sql.DB) *PopulateRepository {
@@ -20,17 +20,17 @@ func NewPopulateRepository(db *sql.DB) *PopulateRepository {
 	}
 }
 
-func (r *PopulateRepository) GetDataPopulate(name string) ([]model.Subscription, error) {
+func (r *PopulateRepository) GetDataPopulate(name string) ([]entity.Subscription, error) {
 
 	var SQL string
 
 	switch name {
 	case "RENEWAL":
-		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC`
+		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY DATE(created_at) DESC, success DESC`
 	case "RETRY":
-		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE_SUB(DATE(renewal_at), INTERVAL 1 DAY) = DATE(NOW()) AND is_retry = true AND is_active = true AND deleted_at IS null ORDER BY success DESC`
+		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE_SUB(DATE(renewal_at), INTERVAL 1 DAY) = DATE(NOW()) AND is_retry = true AND is_active = true AND deleted_at IS null ORDER BY DATE(created_at) DESC, success DESC`
 	case "PURGE":
-		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(purge_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC`
+		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(purge_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY DATE(created_at) DESC, success DESC`
 	}
 
 	rows, err := r.db.Query(SQL)
@@ -39,12 +39,12 @@ func (r *PopulateRepository) GetDataPopulate(name string) ([]model.Subscription,
 	}
 	defer rows.Close()
 
-	var subs []model.Subscription
+	var subs []entity.Subscription
 
 	for rows.Next() {
 
-		var s model.Subscription
-		if err := rows.Scan(&s.ID, &s.Msisdn, &s.ServiceID, &s.Keyword, &s.PurgeAt, &s.IpAddress); err != nil {
+		var s entity.Subscription
+		if err := rows.Scan(&s.ID, &s.Msisdn, &s.ServiceID, &s.Keyword, &s.PurgeAt, &s.IpAddress, &s.CreatedAt); err != nil {
 			return nil, err
 		}
 		subs = append(subs, s)

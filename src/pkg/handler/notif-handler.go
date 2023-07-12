@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 	"waki.mobi/go-yatta-h3i/src/pkg/util"
 )
 
@@ -17,7 +17,7 @@ import (
  * Method: GET
  * Endpoint:
  */
-func NotifSub(service model.Service, msisdn string, transaction string) ([]byte, error) {
+func NotifSub(service entity.Service, msisdn string, transaction string) ([]byte, error) {
 	loggerNotif := util.MakeLogger("notif", true)
 
 	urlAPI := service.UrlNotifSub
@@ -69,7 +69,7 @@ func NotifSub(service model.Service, msisdn string, transaction string) ([]byte,
  * Method: GET
  * Endpoint:
  */
-func NotifUnsub(service model.Service, msisdn string, transaction string) ([]byte, error) {
+func NotifUnsub(service entity.Service, msisdn string, transaction string) ([]byte, error) {
 	loggerNotif := util.MakeLogger("notif", true)
 
 	urlAPI := service.UrlNotifUnsub
@@ -120,7 +120,7 @@ func NotifUnsub(service model.Service, msisdn string, transaction string) ([]byt
  * Method: GET
  * Endpoint:
  */
-func NotifRenewal(service model.Service, msisdn string, transaction string) ([]byte, error) {
+func NotifRenewal(service entity.Service, msisdn string, transaction string) ([]byte, error) {
 	loggerNotif := util.MakeLogger("notif", true)
 
 	urlAPI := service.UrlNotifRenewal

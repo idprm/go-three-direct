@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"waki.mobi/go-yatta-h3i/src/pkg/model"
+	"waki.mobi/go-yatta-h3i/src/domain/entity"
 )
 
 type SubscriptionRepository struct {
@@ -14,10 +14,10 @@ type SubscriptionRepository struct {
 }
 
 type ISubscriptionRepository interface {
-	GetSub(int, string) (model.Subscription, error)
-	SubUpdateLatest(model.Subscription) error
-	SubUpdateSuccess(model.Subscription) error
-	SubUpdateFailed(model.Subscription)
+	GetSub(int, string) (entity.Subscription, error)
+	SubUpdateLatest(entity.Subscription) error
+	SubUpdateSuccess(entity.Subscription) error
+	SubUpdateFailed(entity.Subscription)
 }
 
 func NewSubscriptionRepository(db *sql.DB) *SubscriptionRepository {
@@ -26,8 +26,8 @@ func NewSubscriptionRepository(db *sql.DB) *SubscriptionRepository {
 	}
 }
 
-func (r *SubscriptionRepository) GetSub(serviceId int, msisdn string) (model.Subscription, error) {
-	var s model.Subscription
+func (r *SubscriptionRepository) GetSub(serviceId int, msisdn string) (entity.Subscription, error) {
+	var s entity.Subscription
 	sqlStatement := `SELECT id, service_id, msisdn, keyword, adnet, latest_subject, latest_status, amount, renewal_at, purge_at, unsub_at, charge_at, retry_at, success, ip_address, is_retry, is_purge, is_active, created_at, updated_at FROM subscriptions WHERE service_id = ? AND msisdn = ? AND deleted_at IS NULL LIMIT 1`
 	err := r.db.QueryRow(sqlStatement, serviceId, msisdn).Scan(&s.ID, &s.ServiceID, &s.Msisdn, &s.Keyword, &s.Adnet, &s.LatestSubject, &s.LatestStatus, &s.Amount, &s.RenewalAt, &s.PurgeAt, &s.UnsubAt, &s.ChargeAt, &s.RetryAt, &s.Success, &s.IpAddress, &s.IsRetry, &s.IsPurge, &s.IsActive, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
@@ -37,7 +37,7 @@ func (r *SubscriptionRepository) GetSub(serviceId int, msisdn string) (model.Sub
 	return s, nil
 }
 
-func (r *SubscriptionRepository) SubUpdateLatest(s model.Subscription) error {
+func (r *SubscriptionRepository) SubUpdateLatest(s entity.Subscription) error {
 	query := "UPDATE subscriptions SET latest_subject = ?, latest_status = ?, updated_at = NOW() WHERE service_id = ? AND msisdn = ? AND is_active = true"
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
@@ -63,7 +63,7 @@ func (r *SubscriptionRepository) SubUpdateLatest(s model.Subscription) error {
 	return nil
 }
 
-func (r *SubscriptionRepository) SubUpdateSuccess(s model.Subscription) error {
+func (r *SubscriptionRepository) SubUpdateSuccess(s entity.Subscription) error {
 	query := "UPDATE subscriptions SET latest_subject = ?, latest_status = ?, amount = amount + ?, renewal_at = ?, charge_at = ?, success = success + ?, is_retry = ?, updated_at = NOW() WHERE service_id = ? AND msisdn = ? AND is_active = true"
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
@@ -89,7 +89,7 @@ func (r *SubscriptionRepository) SubUpdateSuccess(s model.Subscription) error {
 	return nil
 }
 
-func (r *SubscriptionRepository) SubUpdateFailed(s model.Subscription) error {
+func (r *SubscriptionRepository) SubUpdateFailed(s entity.Subscription) error {
 	query := "UPDATE subscriptions SET latest_subject = ?, latest_status = ?, renewal_at = ?, is_retry = ?, updated_at = NOW() WHERE service_id = ? AND msisdn = ? AND is_active = true"
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
