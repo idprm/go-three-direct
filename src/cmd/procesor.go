@@ -1156,16 +1156,19 @@ func (p *Processor) Retry(wg *sync.WaitGroup, message []byte) {
 	service, _ := serviceRepo.GetServiceById(sub.ServiceID)
 
 	var labelStatus string
+	var contentStatus string
 	if sub.IsCreatedAtToday() {
 		labelStatus = smsFirstpush
+		contentStatus = "FIRSTPUSH"
 	} else {
 		labelStatus = smsRenewal
+		contentStatus = "RENEWAL"
 	}
 
 	/**
 	 * Query Content wording
 	 */
-	content, _ := contentRepo.GetContent(sub.ServiceID, labelStatus)
+	content, _ := contentRepo.GetContent(sub.ServiceID, contentStatus)
 	provider := handler.NewTelco(p.cfg)
 	retryMt, err := provider.MessageTerminatedRenewal(service, content, sub.Msisdn, transactionId)
 	if err != nil {

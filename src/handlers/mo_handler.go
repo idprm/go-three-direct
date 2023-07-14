@@ -1,20 +1,25 @@
 package handlers
 
 import (
-	"database/sql"
-
 	"waki.mobi/go-yatta-h3i/src/config"
+	"waki.mobi/go-yatta-h3i/src/domain/repository"
 )
 
 type MOHandler struct {
-	cfg *config.Secret
-	db  *sql.DB
+	cfg         *config.Secret
+	serviceRepo repository.IServiceRepository
+	contentRepo repository.IContentRepository
 }
 
-func NewMOHandler(cfg *config.Secret, db *sql.DB) *MOHandler {
+func NewMOHandler(
+	cfg *config.Secret,
+	serviceRepo repository.IServiceRepository,
+	contentRepo repository.IContentRepository,
+) *MOHandler {
 	return &MOHandler{
-		cfg: cfg,
-		db:  db,
+		cfg:         cfg,
+		serviceRepo: serviceRepo,
+		contentRepo: contentRepo,
 	}
 }
 

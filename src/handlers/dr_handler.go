@@ -1,20 +1,24 @@
 package handlers
 
 import (
-	"database/sql"
-
 	"waki.mobi/go-yatta-h3i/src/config"
+	"waki.mobi/go-yatta-h3i/src/domain/repository"
 )
 
 type DRHandler struct {
-	cfg *config.Secret
-	db  *sql.DB
+	cfg              *config.Secret
+	subscriptionRepo repository.ISubscriptionRepository
+	transactionRepo  repository.ITransactionRepository
 }
 
-func NewDRHandler(cfg *config.Secret, db *sql.DB) *DRHandler {
+func NewDRHandler(cfg *config.Secret,
+	subscriptionRepo repository.ISubscriptionRepository,
+	transactionRepo repository.ITransactionRepository,
+) *DRHandler {
 	return &DRHandler{
-		cfg: cfg,
-		db:  db,
+		cfg:              cfg,
+		subscriptionRepo: subscriptionRepo,
+		transactionRepo:  transactionRepo,
 	}
 }
 

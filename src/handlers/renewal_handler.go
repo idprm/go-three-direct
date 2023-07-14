@@ -1,20 +1,25 @@
 package handlers
 
 import (
-	"database/sql"
-
 	"waki.mobi/go-yatta-h3i/src/config"
+	"waki.mobi/go-yatta-h3i/src/domain/repository"
 )
 
 type RenewalHandler struct {
-	cfg *config.Secret
-	db  *sql.DB
+	cfg         *config.Secret
+	serviceRepo repository.IServiceRepository
+	contentRepo repository.IContentRepository
 }
 
-func NewRenewalHandler(cfg *config.Secret, db *sql.DB) *RenewalHandler {
+func NewRenewalHandler(
+	cfg *config.Secret,
+	serviceRepo repository.IServiceRepository,
+	contentRepo repository.IContentRepository,
+) *RenewalHandler {
 	return &RenewalHandler{
-		cfg: cfg,
-		db:  db,
+		cfg:         cfg,
+		serviceRepo: serviceRepo,
+		contentRepo: contentRepo,
 	}
 }
 

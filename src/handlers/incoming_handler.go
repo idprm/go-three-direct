@@ -18,6 +18,6 @@ func NewIncomingHandler(cfg *config.Secret, db *sql.DB) *IncomingHandler {
 	}
 }
 
-func (h *IncomingHandler) Sync() {
+func (h *IncomingHandler) MessageOriginated() {
 
 }
