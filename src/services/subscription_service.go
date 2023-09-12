@@ -9,7 +9,9 @@ type SubscriptionService struct {
 	subscriptionRepo repository.ISubscriptionRepository
 }
 
-func NewSubscriptionService(subscriptionRepo repository.ISubscriptionRepository) *SubscriptionService {
+func NewSubscriptionService(
+	subscriptionRepo repository.ISubscriptionRepository,
+) *SubscriptionService {
 	return &SubscriptionService{
 		subscriptionRepo: subscriptionRepo,
 	}

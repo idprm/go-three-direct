@@ -2,7 +2,7 @@ package handler
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -69,7 +69,7 @@ func (p *Telco) MessageTerminated(service entity.Service, content entity.Content
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -123,7 +123,7 @@ func (p *Telco) MessageTerminatedUnknown(content entity.Content, msisdn string, 
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -176,7 +176,7 @@ func (p *Telco) MessageTerminatedRenewal(service entity.Service, content entity.
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}

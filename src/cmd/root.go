@@ -28,7 +28,6 @@ func init() {
 	rootCmd.AddCommand(consumerDRCmd)
 	rootCmd.AddCommand(consumerRenewalCmd)
 	rootCmd.AddCommand(consumerRetryCmd)
-	// rootCmd.AddCommand(consumerPurgeCmd)
 
 	rootCmd.AddCommand(publisherRenewalCmd)
 	rootCmd.AddCommand(publisherRetryCmd)

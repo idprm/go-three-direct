@@ -6,10 +6,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gorm.io/gorm"
+	"waki.mobi/go-yatta-h3i/src/config"
 	"waki.mobi/go-yatta-h3i/src/controller"
 )
 
-func Setup(app *fiber.App, db *sql.DB, gdb *gorm.DB) {
+func Setup(cfg *config.Secret, app *fiber.App, db *sql.DB, gdb *gorm.DB) {
 
 	// Default config
 	app.Use(cors.New())
@@ -22,7 +23,7 @@ func Setup(app *fiber.App, db *sql.DB, gdb *gorm.DB) {
 
 	handlerMO := controller.NewHandlerMO(db, gdb)
 	handlerDR := controller.NewHandlerDR(db, gdb)
-	handlerIncoming := controller.NewIncomingHandler(db, gdb)
+	handlerIncoming := controller.NewIncomingHandler(cfg, db, gdb)
 
 	app.Get("/moh3i", handlerMO.MessageOriginated)
 	app.Get("/camph3i", handlerMO.MessageOriginated)
@@ -35,4 +36,10 @@ func Setup(app *fiber.App, db *sql.DB, gdb *gorm.DB) {
 	report.Get("mo", handlerIncoming.ReportMO)
 	report.Get("renewal", handlerIncoming.ReportRenewal)
 	report.Get("firstpush", handlerIncoming.ReportFirstpush)
+
+	/**
+	 * Landing Page
+	 */
+	app.Get("gamren", handlerIncoming.GamrenIndex)
+	app.Get("gamren/term", handlerIncoming.GamrenTerm)
 }

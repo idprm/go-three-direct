@@ -2,8 +2,8 @@ package config
 
 import (
 	"bytes"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -42,7 +42,7 @@ type Secret struct {
 }
 
 func LoadSecret(path string) (*Secret, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

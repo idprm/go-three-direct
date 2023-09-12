@@ -5,19 +5,34 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+	"waki.mobi/go-yatta-h3i/src/config"
 	"waki.mobi/go-yatta-h3i/src/domain/entity"
 )
 
 type IncomingHandler struct {
+	cfg *config.Secret
 	db  *sql.DB
 	gdb *gorm.DB
 }
 
-func NewIncomingHandler(db *sql.DB, gdb *gorm.DB) *IncomingHandler {
+func NewIncomingHandler(cfg *config.Secret, db *sql.DB, gdb *gorm.DB) *IncomingHandler {
 	return &IncomingHandler{
+		cfg: cfg,
 		db:  db,
 		gdb: gdb,
 	}
+}
+
+func (h *IncomingHandler) GamrenIndex(c *fiber.Ctx) error {
+	return c.Render("gamren/index", fiber.Map{
+		"host": h.cfg.App.Host,
+	})
+}
+
+func (h *IncomingHandler) GamrenTerm(c *fiber.Ctx) error {
+	return c.Render("gamren/terms", fiber.Map{
+		"host": h.cfg.App.Host,
+	})
 }
 
 func (h *IncomingHandler) ReportMO(c *fiber.Ctx) error {

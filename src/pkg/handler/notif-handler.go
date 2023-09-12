@@ -2,7 +2,7 @@ package handler
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -56,7 +56,7 @@ func NotifSub(service entity.Service, msisdn string, transaction string) ([]byte
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -107,7 +107,7 @@ func NotifUnsub(service entity.Service, msisdn string, transaction string) ([]by
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -159,7 +159,7 @@ func NotifRenewal(service entity.Service, msisdn string, transaction string) ([]
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}

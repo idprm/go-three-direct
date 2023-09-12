@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"database/sql"
@@ -19,5 +19,9 @@ func NewIncomingHandler(cfg *config.Secret, db *sql.DB) *IncomingHandler {
 }
 
 func (h *IncomingHandler) MessageOriginated() {
+
+}
+
+func (h *IncomingHandler) DeliveryReport() {
 
 }

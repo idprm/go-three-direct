@@ -35,7 +35,7 @@ var serverCmd = &cobra.Command{
 		sdb := db.InitDB(cfg)
 		gdb := db.InitGormDB(cfg)
 
-		engine := html.New("./src/views", ".html")
+		engine := html.New("./src/presenter/views", ".html")
 
 		/**
 		 * Init Fiber
@@ -58,7 +58,7 @@ var serverCmd = &cobra.Command{
 		/**
 		 * SETUP route
 		 */
-		route.Setup(app, sdb, gdb)
+		route.Setup(cfg, app, sdb, gdb)
 
 		path, err := os.Getwd()
 		if err != nil {

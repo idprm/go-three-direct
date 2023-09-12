@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{.host}}/static/gamren/css/mdb.dark.min.css">
+    <link rel="stylesheet" href="{{.host}}/static/gamren/css/style.css">
+    <title>GAMREN</title>
+</head>
+
+<body>
+    <div class="mx-auto box-wrapper">
+        <img src="{{.host}}/static/gamren/img/banner-gamren.jpg" alt="GAMREN" class="img-fluid">
+    </div>
+    <div class="container-fluid box-wrapper text-center pb-3 mt-3">
+        <div class="content-box mb-3">
+            <h5 class="mb-2 text-uppercase title">
+                Masukkan nomor ponsel Anda
+            </h5>
+            <input type="text" class="form-control form-control-lg shadow text-center rounded-pill border-2 mb-3"
+                placeholder="XXXX">
+            <div class="button-wrapper mx-auto">
+                <a href="javascript:void(0)" class="btn btn-transparent button btn-lg w-100 rounded-pill"
+                    id="subscribe">Berlangganan Sekarang!</a>
+                <div class="mt-3 small d-block">
+                    Ini adalah layanan berlangganan game html Rp.2220/sms/per 2 hari Tarif Gprs normal Info
+                    CS:021-52964211
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <p class="info mb-2" style="text-align: justify;"></p>
+            <ul class="footer">
+                <li><a href="{{.host}}/gamren/term">Syarat & Ketentuan</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="{{.host}}/static/gamren/js/mdb.min.js"></script>
+<script>
+    $('#subscribe').click(function () {
+        $('.content-box').html('<p class="mb-2">Enter OTP to Verification</p><input type="number" class="form-control form-control-lg shadow text-center rounded-pill border-2 mb-3" placeholder="XXXX"><div class="button-wrapper mx-auto"><a href="#" onclick="success()" class="btn btn-transparent button btn-lg w-100 rounded-pill">Verify</a></div>')
+    })
+    function success() {
+        alert("Success!")
+    }
+</script>
+
+</html>

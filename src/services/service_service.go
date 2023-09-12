@@ -9,7 +9,9 @@ type ServiceService struct {
 	serviceRepo repository.IServiceRepository
 }
 
-func NewServiceService(serviceRepo repository.IServiceRepository) *ServiceService {
+func NewServiceService(
+	serviceRepo repository.IServiceRepository,
+) *ServiceService {
 	return &ServiceService{
 		serviceRepo: serviceRepo,
 	}

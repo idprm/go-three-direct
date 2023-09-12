@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"waki.mobi/go-yatta-h3i/src/config"
