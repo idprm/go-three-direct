@@ -101,6 +101,11 @@ func FilterMessage(message string) string {
 			return keyword[:i]
 		}
 
+		if strings.Contains(keyword, "ASK") {
+			i := len("ASK")
+			return keyword[:i]
+		}
+
 		return keyword
 	} else {
 		return message
