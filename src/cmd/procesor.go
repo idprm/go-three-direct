@@ -85,7 +85,7 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 
 	provider := handler.NewTelco(p.cfg)
 
-	if (service.Name != "KEREN" && service.Name != "GM") || service.ID == 0 {
+	if (service.Name != "KEREN" && service.Name != "GM" && service.Name != "ASK") || service.ID == 0 {
 		unknownKeywordMt, err := provider.MessageTerminatedUnknown(contentUnknown, req.MobileNo, transactionId)
 		if err != nil {
 			loggerMt.WithFields(logrus.Fields{
