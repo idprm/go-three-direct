@@ -124,12 +124,20 @@ func KeywordDefine(message string) string {
 		return message[i:]
 	}
 
+	if strings.Contains(message, "REG ASK") {
+		i := len("REG ASK")
+		return message[i:]
+	}
+
 	return ""
 }
 
 func FilterReg(message string) bool {
 	index := strings.Split(strings.ToUpper(message), " ")
-	if index[0] == "REG" && (strings.Contains(strings.ToUpper(message), "REG KEREN") || strings.Contains(strings.ToUpper(message), "REG GM")) {
+	if index[0] == "REG" &&
+		(strings.Contains(strings.ToUpper(message), "REG KEREN") ||
+			strings.Contains(strings.ToUpper(message), "REG GM") ||
+			strings.Contains(strings.ToUpper(message), "REG ASK")) {
 		return true
 	}
 	return false
@@ -137,7 +145,10 @@ func FilterReg(message string) bool {
 
 func FilterUnreg(message string) bool {
 	index := strings.Split(strings.ToUpper(message), " ")
-	if index[0] == "UNREG" && (strings.Contains(strings.ToUpper(message), "UNREG KEREN") || strings.Contains(strings.ToUpper(message), "UNREG GM")) {
+	if index[0] == "UNREG" &&
+		(strings.Contains(strings.ToUpper(message), "UNREG KEREN") ||
+			strings.Contains(strings.ToUpper(message), "UNREG GM") ||
+			strings.Contains(strings.ToUpper(message), "UNREG ASK")) {
 		return true
 	}
 	return false

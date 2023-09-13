@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"encoding/xml"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -79,7 +80,10 @@ func (p *Processor) MO(wg *sync.WaitGroup, message []byte) {
 	 * Query content
 	 */
 	// get service by name
-	service, _ := serviceRepo.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
+	service, err := serviceRepo.GetServiceByName(util.FilterMessage(strings.ToUpper(req.Message)))
+	if err != nil {
+		log.Println(err)
+	}
 
 	provider := handler.NewTelco(p.cfg)
 
