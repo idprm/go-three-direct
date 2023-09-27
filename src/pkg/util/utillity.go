@@ -86,30 +86,20 @@ func DRStatus(name string) string {
 	return label
 }
 
-func FilterMessage(message string) string {
-	i := strings.Index(message, " ")
-	if i > -1 {
-		keyword := message[i+1:]
+func FilterMessage(msg string) string {
+	message := strings.ToUpper(msg)
+	index := strings.Split(message, " ")
 
-		if strings.Contains(keyword, "KEREN") {
-			i := len("KEREN")
-			return keyword[:i]
+	if index[0] == "REG" || index[0] == "UNREG" {
+		if strings.Contains(message, "REG") || strings.Contains(message, "UNREG") {
+			if len(index) > 1 {
+				return index[1]
+			}
+			return ""
 		}
-
-		if strings.Contains(keyword, "GM") {
-			i := len("GM")
-			return keyword[:i]
-		}
-
-		if strings.Contains(keyword, "ASK") {
-			i := len("ASK")
-			return keyword[:i]
-		}
-
-		return keyword
-	} else {
-		return message
+		return ""
 	}
+	return ""
 }
 
 func KeywordDefine(message string) string {
@@ -134,22 +124,10 @@ func KeywordDefine(message string) string {
 
 func FilterReg(message string) bool {
 	index := strings.Split(strings.ToUpper(message), " ")
-	if index[0] == "REG" &&
-		(strings.Contains(strings.ToUpper(message), "REG KEREN") ||
-			strings.Contains(strings.ToUpper(message), "REG GM") ||
-			strings.Contains(strings.ToUpper(message), "REG ASK")) {
-		return true
-	}
-	return false
+	return index[0] == "REG"
 }
 
 func FilterUnreg(message string) bool {
 	index := strings.Split(strings.ToUpper(message), " ")
-	if index[0] == "UNREG" &&
-		(strings.Contains(strings.ToUpper(message), "UNREG KEREN") ||
-			strings.Contains(strings.ToUpper(message), "UNREG GM") ||
-			strings.Contains(strings.ToUpper(message), "UNREG ASK")) {
-		return true
-	}
-	return false
+	return index[0] == "UNREG"
 }
