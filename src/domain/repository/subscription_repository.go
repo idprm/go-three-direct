@@ -21,9 +21,11 @@ const (
 	queryUpdateFailed           = "UPDATE subscriptions SET latest_subject = ?, latest_status = ?, renewal_at = ?, is_retry = ?, updated_at = NOW() WHERE service_id = ? AND msisdn = ? AND is_active = true"
 	querySubUpdateDisable       = "UPDATE subscriptions SET latest_subject = ?, latest_status = ?, unsub_at = ?, is_retry = false, is_active = false, updated_at = NOW() WHERE service_id = ? AND msisdn = ?"
 	queryInsertSub              = "INSERT INTO subscriptions(service_id, msisdn, keyword, adnet, latest_subject, latest_status, ip_address, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	queryRenewal                = "SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC"
-	queryRetry                  = "SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE_SUB(DATE(renewal_at), INTERVAL 1 DAY) = DATE(NOW()) AND is_retry = true AND is_active = true AND deleted_at IS null ORDER BY success DESC"
-	queryPurge                  = "SELECT id, msisdn, service_id, keyword, purge_at, ip_address FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(purge_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC"
+	queryRenewalAll             = "SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC"
+	queryRenewalOdd             = "SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE MOD(CAST(RIGHT(msisdn, 1) AS INT), 2) = 1 AND renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC"
+	queryRenewalEven            = "SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE MOD(CAST(RIGHT(msisdn, 1) AS INT), 2) = 0 AND renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC"
+	queryRetry                  = "SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE_SUB(DATE(renewal_at), INTERVAL 1 DAY) = DATE(NOW()) AND is_retry = true AND is_active = true AND deleted_at IS null ORDER BY success DESC"
+	queryPurge                  = "SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(purge_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY success DESC"
 )
 
 type SubscriptionRepository struct {
@@ -255,7 +257,7 @@ func (r *SubscriptionRepository) InsertSub(s *entity.Subscription) error {
 }
 
 func (r *SubscriptionRepository) GetRenewal() (*[]entity.Subscription, error) {
-	rows, err := r.db.Query(queryRenewal)
+	rows, err := r.db.Query(queryRenewalAll)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +268,7 @@ func (r *SubscriptionRepository) GetRenewal() (*[]entity.Subscription, error) {
 	for rows.Next() {
 
 		var s entity.Subscription
-		if err := rows.Scan(&s.ID, &s.Msisdn, &s.ServiceID, &s.Keyword, &s.PurgeAt, &s.IpAddress); err != nil {
+		if err := rows.Scan(&s.ID, &s.Msisdn, &s.ServiceID, &s.Keyword, &s.PurgeAt, &s.IpAddress, &s.CreatedAt); err != nil {
 			return nil, err
 		}
 		subs = append(subs, s)
@@ -291,7 +293,7 @@ func (r *SubscriptionRepository) GetRetry() (*[]entity.Subscription, error) {
 	for rows.Next() {
 
 		var s entity.Subscription
-		if err := rows.Scan(&s.ID, &s.Msisdn, &s.ServiceID, &s.Keyword, &s.PurgeAt, &s.IpAddress); err != nil {
+		if err := rows.Scan(&s.ID, &s.Msisdn, &s.ServiceID, &s.Keyword, &s.PurgeAt, &s.IpAddress, &s.CreatedAt); err != nil {
 			return nil, err
 		}
 		subs = append(subs, s)

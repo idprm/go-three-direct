@@ -76,7 +76,16 @@ var publisherRenewalCmd = &cobra.Command{
 				gdb.Save(&schedule)
 
 				go func() {
-					populateRenewal(sdb)
+					// populate charging has been successful
+					// populateRenewal(sdb)
+
+					// DISABLE populate based day (odd & even)
+					if currentTime.Day()%2 == 1 {
+						populateRenewalOdd(sdb)
+					} else {
+						populateRenewalEven(sdb)
+					}
+
 				}()
 
 			}
@@ -178,6 +187,66 @@ func populateRenewal(sdb *sql.DB) {
 	populateRepo := query.NewPopulateRepository(sdb)
 
 	subs, _ := populateRepo.GetDataPopulate("RENEWAL")
+
+	for _, s := range subs {
+		var sub entity.Subscription
+
+		sub.ID = s.ID
+		sub.Msisdn = s.Msisdn
+		sub.ServiceID = s.ServiceID
+		sub.Keyword = s.Keyword
+		sub.PurgeAt = s.PurgeAt
+		sub.IpAddress = s.IpAddress
+		sub.CreatedAt = s.CreatedAt
+
+		json, _ := json.Marshal(sub)
+
+		queue.Rabbit.IntegratePublish(
+			"E_RENEWAL",
+			"Q_RENEWAL",
+			"application/json",
+			"",
+			string(json),
+		)
+		time.Sleep(100 * time.Microsecond)
+	}
+}
+
+func populateRenewalOdd(sdb *sql.DB) {
+
+	populateRepo := query.NewPopulateRepository(sdb)
+
+	subs, _ := populateRepo.GetDataPopulate("RENEWAL_ODD")
+
+	for _, s := range subs {
+		var sub entity.Subscription
+
+		sub.ID = s.ID
+		sub.Msisdn = s.Msisdn
+		sub.ServiceID = s.ServiceID
+		sub.Keyword = s.Keyword
+		sub.PurgeAt = s.PurgeAt
+		sub.IpAddress = s.IpAddress
+		sub.CreatedAt = s.CreatedAt
+
+		json, _ := json.Marshal(sub)
+
+		queue.Rabbit.IntegratePublish(
+			"E_RENEWAL",
+			"Q_RENEWAL",
+			"application/json",
+			"",
+			string(json),
+		)
+		time.Sleep(100 * time.Microsecond)
+	}
+}
+
+func populateRenewalEven(sdb *sql.DB) {
+
+	populateRepo := query.NewPopulateRepository(sdb)
+
+	subs, _ := populateRepo.GetDataPopulate("RENEWAL_EVEN")
 
 	for _, s := range subs {
 		var sub entity.Subscription

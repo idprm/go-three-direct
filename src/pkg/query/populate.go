@@ -27,6 +27,10 @@ func (r *PopulateRepository) GetDataPopulate(name string) ([]entity.Subscription
 	switch name {
 	case "RENEWAL":
 		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY DATE(created_at) DESC, success DESC`
+	case "RENEWAL_ODD":
+		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE MOD(CAST(RIGHT(msisdn, 1) AS INT), 2) = 1 AND renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY DATE(created_at) DESC, success DESC`
+	case "RENEWAL_EVEN":
+		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE MOD(CAST(RIGHT(msisdn, 1) AS INT), 2) = 0 AND renewal_at IS NOT NULL AND DATE(renewal_at) <= DATE(NOW()) AND is_active = true AND deleted_at IS null ORDER BY DATE(created_at) DESC, success DESC`
 	case "RETRY":
 		SQL = `SELECT id, msisdn, service_id, keyword, purge_at, ip_address, created_at FROM subscriptions WHERE renewal_at IS NOT NULL AND DATE_SUB(DATE(renewal_at), INTERVAL 1 DAY) = DATE(NOW()) AND is_retry = true AND is_active = true AND deleted_at IS null ORDER BY DATE(created_at) DESC, success DESC`
 	case "PURGE":
