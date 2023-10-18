@@ -77,14 +77,14 @@ var publisherRenewalCmd = &cobra.Command{
 
 				go func() {
 					// populate charging has been successful
-					// populateRenewal(sdb)
+					populateRenewal(sdb)
 
 					// DISABLE populate based day (odd & even)
-					if currentTime.Day()%2 == 1 {
-						populateRenewalOdd(sdb)
-					} else {
-						populateRenewalEven(sdb)
-					}
+					// if currentTime.Day()%2 == 1 {
+					// 	populateRenewalOdd(sdb)
+					// } else {
+					// 	populateRenewalEven(sdb)
+					// }
 
 				}()
 
