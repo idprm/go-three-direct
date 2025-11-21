@@ -1,7 +1,7 @@
 package main
 
 import (
-	"waki.mobi/go-yatta-h3i/src/cmd"
+	"github.com/idprm/go-three-direct/cmd"
 )
 
 func main() {
